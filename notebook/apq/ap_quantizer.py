@@ -122,10 +122,9 @@ class QuantizedAttention(nn.Module):
         
         self._original_P = None
         self._original_O = None
-        self._original_attn_output = None
         self._last_P = None
         self._last_O = None
-        self._hook_handle = None
+        self._last_attn_output = None
     
     def set_bit_width(self, bit_width: int):
         self.bit_width = bit_width
@@ -134,11 +133,9 @@ class QuantizedAttention(nn.Module):
         self.v_proj.set_bit_width(bit_width)
         self.o_proj.set_bit_width(bit_width)
     
-    def set_fp_reference(self, P: torch.Tensor, O: torch.Tensor, attn_output: Optional[torch.Tensor] = None):
+    def set_fp_reference(self, P: torch.Tensor, O: torch.Tensor):
         self._original_P = P.detach()
         self._original_O = O.detach()
-        if attn_output is not None:
-            self._original_attn_output = attn_output.detach()
     
     def forward(self, hidden_states: torch.Tensor, attention_mask: Optional[torch.Tensor] = None,
                 **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -213,8 +210,6 @@ class AttentionPreservingQuantizer:
         self.calibration_dataloader = self._prepare_calibration_data(calibration_texts)
         
         self._original_state_dict = {k: v.clone() for k, v in model.state_dict().items()}
-        self._attention_hooks = []
-        self._hook_outputs = {}
         
         self._replace_attention_modules()
         
@@ -230,26 +225,6 @@ class AttentionPreservingQuantizer:
             shuffle=True,
             drop_last=True
         )
-    
-    def _register_attention_hook(self, layer_idx: int, attn_module):
-        """Register forward hook to capture actual attention output"""
-        def hook_fn(module, input, output):
-            # GPT-2 returns (attn_out, present_key_value)
-            if isinstance(output, tuple):
-                attn_out = output[0]
-            else:
-                attn_out = output
-            self._hook_outputs[layer_idx] = attn_out.detach()
-        
-        handle = attn_module.register_forward_hook(hook_fn)
-        self._attention_hooks.append(handle)
-        return handle
-    
-    def _remove_attention_hooks(self):
-        for handle in self._attention_hooks:
-            handle.remove()
-        self._attention_hooks = []
-        self._hook_outputs = {}
     
     def _replace_attention_modules(self):
         layer_idx = 0
@@ -340,34 +315,12 @@ class AttentionPreservingQuantizer:
         return outputs
     
     def _compute_reference(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
-        """Compute FP16 reference using hooks to capture actual attention output"""
         with torch.no_grad():
-            self._hook_outputs = {}
-            hooks = []
-            
-            # Register hooks on original attention modules
-            if hasattr(self.model, 'transformer') and hasattr(self.model.transformer, 'h'):
-                for idx, block in enumerate(self.model.transformer.h):
-                    if hasattr(block, 'attn'):
-                        def make_hook(layer_idx):
-                            def hook_fn(module, input, output):
-                                if isinstance(output, tuple):
-                                    attn_out = output[0]
-                                else:
-                                    attn_out = output
-                                self._hook_outputs[layer_idx] = attn_out.detach()
-                            return hook_fn
-                        handle = block.attn.register_forward_hook(make_hook(idx))
-                        hooks.append(handle)
-            
-            # Run FP16 forward pass
             self._set_quantization(False)
             outputs_ref = self._forward_with_attention(input_ids, attention_mask)
             self._set_quantization(True)
             
-            # Store references for each layer
             for idx, attn in enumerate(self._get_layers()):
-                # Get attention distribution from outputs
                 if idx < len(outputs_ref.attentions):
                     P_ref = outputs_ref.attentions[idx]
                 else:
@@ -375,23 +328,11 @@ class AttentionPreservingQuantizer:
                     if P_ref is None:
                         P_ref = torch.zeros(1, 1, 1, 1, device=input_ids.device)
                 
-                # Get actual attention output from hook
-                O_ref = self._hook_outputs.get(idx)
+                O_ref = getattr(attn, '_last_O', None)
                 if O_ref is None:
-                    # Fallback: use hidden state diff
-                    if outputs_ref.hidden_states is not None and len(outputs_ref.hidden_states) > idx + 1:
-                        O_ref = outputs_ref.hidden_states[idx + 1] - outputs_ref.hidden_states[idx]
-                    else:
-                        O_ref = getattr(attn, '_last_O', None)
-                        if O_ref is None:
-                            O_ref = torch.zeros_like(input_ids.float()).unsqueeze(-1).expand(-1, -1, attn.embed_dim)
+                    O_ref = torch.zeros_like(input_ids.float()).unsqueeze(-1).expand(-1, -1, attn.embed_dim)
                 
-                attn.set_fp_reference(P_ref, O_ref, O_ref)
-            
-            # Clean up hooks
-            for handle in hooks:
-                handle.remove()
-            self._hook_outputs = {}
+                attn.set_fp_reference(P_ref, O_ref)
     
     def _compute_lambda(self, num_steps: int = 5) -> float:
         l_output_sum = 0.0
@@ -422,12 +363,9 @@ class AttentionPreservingQuantizer:
                         P_ref = attn._original_P
                         O_ref = attn._original_O
                         
-                        # Get quantized attention output
-                        O_hat = getattr(attn, '_last_attn_output', None)
+                        O_hat = getattr(attn, '_last_O', None)
                         if O_hat is None:
-                            O_hat = getattr(attn, '_last_O', None)
-                            if O_hat is None:
-                                O_hat = torch.zeros_like(O_ref)
+                            O_hat = torch.zeros_like(O_ref)
                         
                         l_output = compute_output_loss(O_ref, O_hat)
                         l_kl = compute_kl_loss(P_ref, P_hat)
@@ -526,11 +464,9 @@ class AttentionPreservingQuantizer:
                     P_ref = attn._original_P
                     O_ref = attn._original_O
                     
-                    O_hat = getattr(attn, '_last_attn_output', None)
+                    O_hat = getattr(attn, '_last_O', None)
                     if O_hat is None:
-                        O_hat = getattr(attn, '_last_O', None)
-                        if O_hat is None:
-                            O_hat = torch.zeros_like(O_ref)
+                        O_hat = torch.zeros_like(O_ref)
                     
                     l_output = compute_output_loss(O_ref, O_hat)
                     l_kl = compute_kl_loss(P_ref, P_hat)
@@ -587,7 +523,6 @@ class AttentionPreservingQuantizer:
         return self.model
     
     def _get_active_scale_params(self) -> List[nn.Parameter]:
-        """Get only active (enabled) scale parameters"""
         params = []
         for attn in self._get_layers():
             if attn.enabled:
@@ -648,11 +583,9 @@ class AttentionPreservingQuantizer:
                         P_ref = attn._original_P
                         O_ref = attn._original_O
                         
-                        O_hat = getattr(attn, '_last_attn_output', None)
+                        O_hat = getattr(attn, '_last_O', None)
                         if O_hat is None:
-                            O_hat = getattr(attn, '_last_O', None)
-                            if O_hat is None:
-                                O_hat = torch.zeros_like(O_ref)
+                            O_hat = torch.zeros_like(O_ref)
                         
                         l_output = compute_output_loss(O_ref, O_hat)
                         l_kl = compute_kl_loss(P_ref, P_hat)
