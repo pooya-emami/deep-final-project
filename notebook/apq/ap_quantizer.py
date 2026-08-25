@@ -54,7 +54,7 @@ class QuantizedLinearSTE(nn.Module):
         return w_quantized * scale_clamped
 
     def forward(self, x: torch.Tensor, force_fp16: bool = False) -> torch.Tensor:
-        # True FP16 bypass
+        # TRUE FP16 BYPASS
         if self.bit_width == 16 or force_fp16:
             if self.bias_fp16 is not None:
                 return F.linear(x, self.weight_fp16, self.bias_fp16)
@@ -140,6 +140,10 @@ class QuantizedAttention(nn.Module):
         self.k_proj.set_bit_width(bit_width)
         self.v_proj.set_bit_width(bit_width)
         self.o_proj.set_bit_width(bit_width)
+        
+        # If bit_width is 16, disable quantization entirely
+        if bit_width == 16:
+            self.enabled = False
     
     def set_fp_reference(self, P: torch.Tensor, O: torch.Tensor):
         self._original_P = P.detach()
@@ -149,7 +153,8 @@ class QuantizedAttention(nn.Module):
                 **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size, seq_len, _ = hidden_states.shape
         
-        if not self.enabled:
+        # FP16 pass or quantized pass
+        if not self.enabled or self.bit_width == 16:
             q = F.linear(hidden_states, self.q_proj.weight_fp16, self.q_proj.bias_fp16)
             k = F.linear(hidden_states, self.k_proj.weight_fp16, self.k_proj.bias_fp16)
             v = F.linear(hidden_states, self.v_proj.weight_fp16, self.v_proj.bias_fp16)
@@ -184,7 +189,12 @@ class QuantizedAttention(nn.Module):
         self._last_P = P
         self._last_O = attn_output
         
-        attn_output = self.o_proj(attn_output, force_fp16=not self.enabled)
+        # Output projection
+        if not self.enabled or self.bit_width == 16:
+            attn_output = F.linear(attn_output, self.o_proj.weight_fp16, self.o_proj.bias_fp16)
+        else:
+            attn_output = self.o_proj(attn_output, force_fp16=False)
+        
         self._last_attn_output = attn_output
         
         return attn_output, P
@@ -295,13 +305,16 @@ class AttentionPreservingQuantizer:
     def _set_quantization(self, enabled: bool, layer_indices: Optional[List[int]] = None):
         for attn in self._get_layers():
             if layer_indices is None or attn.layer_idx in layer_indices:
+                # Don't enable FP16 layers (they should always be FP16)
+                if enabled and attn.bit_width == 16:
+                    continue
                 attn.enabled = enabled
     
     def _set_bit_width_for_layer(self, layer_idx: int, bit_width: int):
         for attn in self._get_layers():
             if attn.layer_idx == layer_idx:
                 attn.set_bit_width(bit_width)
-                attn.enabled = True
+                # If bit_width is 16, enabled is set to False in set_bit_width
                 break
     
     def _set_all_bit_widths(self, assignments: Dict[int, int]):
@@ -309,7 +322,6 @@ class AttentionPreservingQuantizer:
             for attn in self._get_layers():
                 if attn.layer_idx == layer_idx:
                     attn.set_bit_width(bit_width)
-                    attn.enabled = True
                     break
     
     def _forward_with_attention(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
@@ -345,9 +357,16 @@ class AttentionPreservingQuantizer:
                 handle = attn.register_forward_hook(make_hook(attn.layer_idx))
                 hooks.append(handle)
             
-            self._set_quantization(False)
+            # Disable all quantization for FP16 reference
+            for attn in self._get_layers():
+                attn.enabled = False
+            
             _ = self._forward_with_attention(input_ids, attention_mask)
-            self._set_quantization(True)
+            
+            # Restore quantization state
+            for attn in self._get_layers():
+                if attn.bit_width != 16:
+                    attn.enabled = True
             
             for handle in hooks:
                 handle.remove()
@@ -471,13 +490,19 @@ class AttentionPreservingQuantizer:
             
             self._compute_reference(input_ids, attention_mask)
             
-            self._set_quantization(False)
-            self._set_bit_width_for_layer(layer_idx, bit_width)
-            self._set_quantization(True, layer_indices=[layer_idx])
+            # Temporarily disable all quantization
+            for attn in self._get_layers():
+                attn.enabled = False
             
-            all_indices = list(range(len(self._get_layers())))
-            other_indices = [i for i in all_indices if i != layer_idx]
-            self._set_quantization(False, layer_indices=other_indices)
+            # Set bit width for target layer (this also sets enabled based on bit_width)
+            self._set_bit_width_for_layer(layer_idx, bit_width)
+            
+            # Enable only target layer if it's not FP16
+            if bit_width != 16:
+                for attn in self._get_layers():
+                    if attn.layer_idx == layer_idx:
+                        attn.enabled = True
+                        break
             
             outputs_q = self._forward_with_attention(input_ids, attention_mask)
             
@@ -502,7 +527,9 @@ class AttentionPreservingQuantizer:
                     total_kl_loss += l_kl
                     num_layers += 1
             
-            self._set_quantization(False)
+            # Restore all layers to original state
+            for attn in self._get_layers():
+                attn.enabled = False
             
             if num_layers > 0:
                 avg_output_loss = total_output_loss / num_layers
@@ -552,6 +579,8 @@ class AttentionPreservingQuantizer:
     def _get_active_scale_params(self) -> List[nn.Parameter]:
         params = []
         for attn in self._get_layers():
+            if attn.bit_width == 16:
+                continue
             if attn.enabled:
                 params.extend([
                     attn.q_proj.scale,
@@ -571,12 +600,17 @@ class AttentionPreservingQuantizer:
         if self._lambda is None:
             self._lambda = self._compute_lambda()
         
+        # Ensure FP16 layers are disabled
+        for attn in self._get_layers():
+            if attn.bit_width == 16:
+                attn.enabled = False
+        
         params_to_optimize = self._get_active_scale_params()
         
         print(f"Number of scale parameters to optimize: {len(params_to_optimize)}")
         
         if len(params_to_optimize) == 0:
-            print("ERROR: No active scale parameters found!")
+            print("WARNING: No active scale parameters found! (All layers at FP16?)")
             return
         
         optimizer = torch.optim.AdamW(params_to_optimize, lr=self.config.lr, weight_decay=0.01)
@@ -605,6 +639,8 @@ class AttentionPreservingQuantizer:
                 num_layers = 0
                 
                 for idx, attn in enumerate(self._get_layers()):
+                    if attn.bit_width == 16:
+                        continue
                     if idx < len(outputs.attentions):
                         P_hat = outputs.attentions[idx]
                         P_ref = attn._original_P
