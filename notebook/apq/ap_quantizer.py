@@ -24,45 +24,46 @@ class QuantizedLinearSTE(nn.Module):
         self.q_max = 2**(bit_width - 1) - 1
         self.per_channel = per_channel
         
-        if per_channel:
+        init_scale = self._calc_init_scale(weight)
+        self.scale = nn.Parameter(init_scale)
+    
+    def _calc_init_scale(self, weight: torch.Tensor) -> torch.Tensor:
+        if self.per_channel:
             max_abs = torch.max(torch.abs(weight), dim=1, keepdim=True).values
             max_abs = torch.clamp(max_abs, min=1e-8)
-            init_scale = max_abs / self.q_max * 1.5
+            return max_abs / self.q_max * 1.5
         else:
             max_abs = torch.max(torch.abs(weight))
             max_abs = max(max_abs, 1e-8)
-            init_scale = torch.ones(1, 1) * max_abs / self.q_max * 1.5
-        
-        self.register_parameter('scale', nn.Parameter(init_scale))
-    
-    def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
-        q_weight = weight / scale
-        q_weight = torch.clamp(q_weight, -self.q_max, self.q_max)
-        q_weight = torch.round(q_weight)
-        q_weight = q_weight * scale
-        return q_weight
-    
+            return torch.ones(1, 1, device=weight.device) * max_abs / self.q_max * 1.5
+
     def set_bit_width(self, bit_width: int):
         self.bit_width = bit_width
         self.q_max = 2**(bit_width - 1) - 1
-        if self.per_channel:
-            max_abs = torch.max(torch.abs(self.weight_fp16), dim=1, keepdim=True).values
-            max_abs = torch.clamp(max_abs, min=1e-8)
-            init_scale = max_abs / self.q_max * 1.5
-        else:
-            max_abs = torch.max(torch.abs(self.weight_fp16))
-            max_abs = max(max_abs, 1e-8)
-            init_scale = torch.ones(1, 1) * max_abs / self.q_max * 1.5
-        self.scale.data.copy_(init_scale)
+        self.scale.data.copy_(self._calc_init_scale(self.weight_fp16))
     
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        weight_q = self.quantize(self.weight_fp16, self.scale)
-        weight_q = self.weight_fp16 + (weight_q - self.weight_fp16).detach()
+    def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
+        scale_clamped = torch.clamp(scale, min=1e-8)
+        
+        w_scaled = weight / scale_clamped
+        w_clamped = torch.clamp(w_scaled, -self.q_max, self.q_max)
+        
+        w_rounded = torch.round(w_clamped)
+        w_quantized = w_clamped + (w_rounded - w_clamped).detach()
+        
+        return w_quantized * scale_clamped
+
+    def forward(self, x: torch.Tensor, force_fp16: bool = False) -> torch.Tensor:
+        if force_fp16 or not self.training and not torch.is_grad_enabled():
+            scale_clamped = torch.clamp(self.scale, min=1e-8)
+            w_q = torch.clamp(torch.round(self.weight_fp16 / scale_clamped), -self.q_max, self.q_max) * scale_clamped
+        else:
+            w_q = self.quantize(self.weight_fp16, self.scale)
         
         if self.bias_fp16 is not None:
-            return F.linear(x, weight_q, self.bias_fp16)
+            return F.linear(x, w_q, self.bias_fp16)
         else:
-            return F.linear(x, weight_q)
+            return F.linear(x, w_q)
 
 
 class QuantizedAttention(nn.Module):
@@ -144,9 +145,9 @@ class QuantizedAttention(nn.Module):
             k = F.linear(hidden_states, self.k_proj.weight_fp16, self.k_proj.bias_fp16)
             v = F.linear(hidden_states, self.v_proj.weight_fp16, self.v_proj.bias_fp16)
         else:
-            q = self.q_proj(hidden_states)
-            k = self.k_proj(hidden_states)
-            v = self.v_proj(hidden_states)
+            q = self.q_proj(hidden_states, force_fp16=False)
+            k = self.k_proj(hidden_states, force_fp16=False)
+            v = self.v_proj(hidden_states, force_fp16=False)
         
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -174,7 +175,7 @@ class QuantizedAttention(nn.Module):
         self._last_P = P
         self._last_O = attn_output
         
-        attn_output = self.o_proj(attn_output)
+        attn_output = self.o_proj(attn_output, force_fp16=False)
         
         return attn_output, P
 
@@ -212,6 +213,7 @@ class AttentionPreservingQuantizer:
         
         self._lambda = None
         self._sensitivity_matrix = None
+        self.loss_history = []
         
     def _prepare_calibration_data(self, texts: List[str]) -> DataLoader:
         dataset = CalibrationDataset(texts, self.tokenizer)
@@ -327,7 +329,7 @@ class AttentionPreservingQuantizer:
                     attn.set_fp_reference(P_ref, O_ref)
             
             self._set_quantization(True)
-
+    
     def _compute_lambda(self, num_steps: int = 5) -> float:
         l_output_sum = 0.0
         l_kl_sum = 0.0
@@ -378,7 +380,7 @@ class AttentionPreservingQuantizer:
         
         if count > 0 and l_kl_sum > 1e-8:
             lambda_val = l_output_sum / l_kl_sum
-            print(f"lamabda = {lambda_val:.4f}")
+            print(f"λ = {lambda_val:.4f}")
             return lambda_val
         else:
             return 1.0
@@ -408,10 +410,7 @@ class AttentionPreservingQuantizer:
                     if batch_idx >= num_batches:
                         break
                     
-                    l_joint = self._compute_loss_single_layer(
-                        batch, layer_idx, bit
-                    )
-                    
+                    l_joint = self._compute_loss_single_layer(batch, layer_idx, bit)
                     l_joint_total += l_joint
                     count += 1
                 
@@ -421,12 +420,14 @@ class AttentionPreservingQuantizer:
             
             if 16 not in bit_candidates:
                 sensitivity[layer_idx][16] = 0.0
+            
+            print()
+        
+        self._sensitivity_matrix = sensitivity
         
         print("=" * 70)
         print("SENSITIVITY MATRIX COMPLETE")
         print("=" * 70)
-
-        self._sensitivity_matrix = sensitivity
         
         self._save_sensitivity_matrix(sensitivity)
         
@@ -522,29 +523,35 @@ class AttentionPreservingQuantizer:
         
         return self.model
     
+    def _get_all_scale_params(self) -> List[nn.Parameter]:
+        params = []
+        for name, param in self.model.named_parameters():
+            if 'scale' in name and param.requires_grad:
+                params.append(param)
+        return params
+    
     def _calibrate_jointly(self, num_iterations: int = 50, use_entropy: bool = False, 
                            beta: float = 0.1, gradient_clip: float = 1.0):
         print("\n" + "=" * 70)
-        print("Joint Calibration")
+        print("JOINT CALIBRATION")
         print("All layers optimized simultaneously with one optimizer")
         print("=" * 70)
         
         if self._lambda is None:
             self._lambda = self._compute_lambda()
         
-        params_to_optimize = []
-        for attn in self._get_layers():
-            params_to_optimize.extend([
-                attn.q_proj.scale,
-                attn.k_proj.scale,
-                attn.v_proj.scale,
-                attn.o_proj.scale
-            ])
+        params_to_optimize = self._get_all_scale_params()
+        
+        print(f"Number of scale parameters to optimize: {len(params_to_optimize)}")
+        
+        if len(params_to_optimize) == 0:
+            print("ERROR: No scale parameters found!")
+            return
         
         optimizer = torch.optim.AdamW(params_to_optimize, lr=self.config.lr, weight_decay=0.01)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_iterations, eta_min=1e-5)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_iterations, eta_min=1e-6)
         
-        loss_history = []
+        self.loss_history = []
         
         for iter_idx in tqdm(range(num_iterations), desc="Joint Calibration"):
             epoch_loss = 0.0
@@ -611,13 +618,12 @@ class AttentionPreservingQuantizer:
             
             if num_batches > 0:
                 avg_loss = epoch_loss / num_batches
-                loss_history.append(avg_loss)
+                self.loss_history.append(avg_loss)
                 
                 if iter_idx % 10 == 0:
                     print(f"Step {iter_idx}: Loss = {avg_loss:.6f}")
         
         print("\nJoint calibration complete!")
-        self.loss_history = loss_history
     
     def calibrate(self, num_iterations: int = 50, use_entropy: bool = False, 
                   beta: float = 0.1) -> nn.Module:
