@@ -54,7 +54,15 @@ class QuantizedLinearSTE(nn.Module):
         return w_quantized * scale_clamped
 
     def forward(self, x: torch.Tensor, force_fp16: bool = False) -> torch.Tensor:
-        if force_fp16 or not self.training and not torch.is_grad_enabled():
+        # True FP16 bypass
+        if self.bit_width == 16 or force_fp16:
+            if self.bias_fp16 is not None:
+                return F.linear(x, self.weight_fp16, self.bias_fp16)
+            else:
+                return F.linear(x, self.weight_fp16)
+        
+        # Quantized path
+        if not self.training and not torch.is_grad_enabled():
             scale_clamped = torch.clamp(self.scale, min=1e-8)
             w_q = torch.clamp(torch.round(self.weight_fp16 / scale_clamped), -self.q_max, self.q_max) * scale_clamped
         else:
@@ -176,7 +184,7 @@ class QuantizedAttention(nn.Module):
         self._last_P = P
         self._last_O = attn_output
         
-        attn_output = self.o_proj(attn_output, force_fp16=False)
+        attn_output = self.o_proj(attn_output, force_fp16=not self.enabled)
         self._last_attn_output = attn_output
         
         return attn_output, P
@@ -316,23 +324,42 @@ class AttentionPreservingQuantizer:
     
     def _compute_reference(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
         with torch.no_grad():
+            captured = {}
+            
+            def make_hook(idx):
+                def hook_fn(module, input, output):
+                    if isinstance(output, tuple) and len(output) >= 2:
+                        captured[idx] = {
+                            'P': output[1].detach(),
+                            'O': output[0].detach()
+                        }
+                    elif hasattr(module, '_last_P') and hasattr(module, '_last_O'):
+                        captured[idx] = {
+                            'P': module._last_P.detach(),
+                            'O': module._last_O.detach()
+                        }
+                return hook_fn
+            
+            hooks = []
+            for attn in self._get_layers():
+                handle = attn.register_forward_hook(make_hook(attn.layer_idx))
+                hooks.append(handle)
+            
             self._set_quantization(False)
-            outputs_ref = self._forward_with_attention(input_ids, attention_mask)
+            _ = self._forward_with_attention(input_ids, attention_mask)
             self._set_quantization(True)
             
-            for idx, attn in enumerate(self._get_layers()):
-                if idx < len(outputs_ref.attentions):
-                    P_ref = outputs_ref.attentions[idx]
-                else:
-                    P_ref = getattr(attn, '_last_P', None)
-                    if P_ref is None:
-                        P_ref = torch.zeros(1, 1, 1, 1, device=input_ids.device)
-                
-                O_ref = getattr(attn, '_last_O', None)
-                if O_ref is None:
-                    O_ref = torch.zeros_like(input_ids.float()).unsqueeze(-1).expand(-1, -1, attn.embed_dim)
-                
-                attn.set_fp_reference(P_ref, O_ref)
+            for handle in hooks:
+                handle.remove()
+            
+            for attn in self._get_layers():
+                if attn.layer_idx in captured:
+                    attn.set_fp_reference(
+                        captured[attn.layer_idx]['P'],
+                        captured[attn.layer_idx]['O']
+                    )
+                elif hasattr(attn, '_last_P') and hasattr(attn, '_last_O'):
+                    attn.set_fp_reference(attn._last_P.detach(), attn._last_O.detach())
     
     def _compute_lambda(self, num_steps: int = 5) -> float:
         l_output_sum = 0.0
