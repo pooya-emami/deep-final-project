@@ -103,7 +103,7 @@ class QuantizedAttention(nn.Module):
             
         elif hasattr(original_attn, "c_attn"):
             self.arch = "gpt"
-            W = original_attn.c_attn.weight
+            W = original_attn.c_attn.weight  # [embed_dim, 3*embed_dim]
             b = original_attn.c_attn.bias
             
             embed_dim = W.shape[0]
@@ -112,17 +112,31 @@ class QuantizedAttention(nn.Module):
             self.num_heads = original_attn.num_heads
             self.head_dim = embed_dim // self.num_heads
             
+            # CRITICAL FIX: Transpose weights because GPT-2 uses Conv1D (x @ W)
+            # F.linear uses x @ W.T, so we need to transpose
             self.q_proj = QuantizedLinearSTE(
-                W[:, :qkv_dim], b[:qkv_dim] if b is not None else None, bit_width, per_channel
+                W[:, :qkv_dim].T,  # .T is the fix
+                b[:qkv_dim] if b is not None else None,
+                bit_width,
+                per_channel
             )
             self.k_proj = QuantizedLinearSTE(
-                W[:, qkv_dim:2*qkv_dim], b[qkv_dim:2*qkv_dim] if b is not None else None, bit_width, per_channel
+                W[:, qkv_dim:2*qkv_dim].T,  # .T is the fix
+                b[qkv_dim:2*qkv_dim] if b is not None else None,
+                bit_width,
+                per_channel
             )
             self.v_proj = QuantizedLinearSTE(
-                W[:, 2*qkv_dim:], b[2*qkv_dim:] if b is not None else None, bit_width, per_channel
+                W[:, 2*qkv_dim:].T,  # .T is the fix
+                b[2*qkv_dim:] if b is not None else None,
+                bit_width,
+                per_channel
             )
             self.o_proj = QuantizedLinearSTE(
-                original_attn.c_proj.weight, original_attn.c_proj.bias, bit_width, per_channel
+                original_attn.c_proj.weight.T,  # .T is the fix
+                original_attn.c_proj.bias,
+                bit_width,
+                per_channel
             )
             
         else:
