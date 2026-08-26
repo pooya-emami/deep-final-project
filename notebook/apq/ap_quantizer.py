@@ -60,7 +60,6 @@ class QuantizedLinearSTE(nn.Module):
             else:
                 return F.linear(x, self.weight_fp16)
         
-        # Consistent quantization for both training and inference
         w_q = self.quantize(self.weight_fp16, self.scale)
         
         if self.bias_fp16 is not None:
@@ -139,6 +138,7 @@ class QuantizedAttention(nn.Module):
         self._original_O = None
         self._last_P = None
         self._last_O = None
+        self._last_attention_output = None
         self._last_attn_output = None
     
     def set_bit_width(self, bit_width: int):
@@ -198,13 +198,14 @@ class QuantizedAttention(nn.Module):
         )
         
         self._last_P = P
-        self._last_O = attn_output
+        self._last_attention_output = attn_output
         
         if not self.enabled or self.bit_width == 16:
             attn_output = F.linear(attn_output, self.o_proj.weight_fp16, self.o_proj.bias_fp16)
         else:
             attn_output = self.o_proj(attn_output, force_fp16=False)
         
+        self._last_O = attn_output
         self._last_attn_output = attn_output
         
         return attn_output, P
@@ -434,6 +435,7 @@ class AttentionPreservingQuantizer:
         if count > 0 and l_kl_sum > 1e-8:
             lambda_val = l_output_sum / (l_kl_sum + 1e-8)
             lambda_val = max(1e-3, min(lambda_val, 1e3))
+            lambda_val = lambda_val * 0.01
             print(f"λ = {lambda_val:.4f}")
             return lambda_val
         else:
@@ -574,8 +576,6 @@ class AttentionPreservingQuantizer:
         
         print("\nMixed precision applied!")
         
-        self._calibrate_jointly()
-        
         return self.model
     
     def _get_active_scale_params(self) -> List[nn.Parameter]:
@@ -596,7 +596,6 @@ class AttentionPreservingQuantizer:
                            beta: float = 0.1, gradient_clip: float = 1.0):
         print("\n" + "=" * 70)
         print("JOINT CALIBRATION")
-        print("All layers optimized simultaneously with one optimizer")
         print("=" * 70)
         
         if self._lambda is None:
@@ -667,6 +666,10 @@ class AttentionPreservingQuantizer:
                 if num_layers > 0:
                     avg_output_loss = total_output_loss / num_layers
                     avg_kl_loss = total_kl_loss / num_layers
+                    
+                    if iter_idx % 10 == 0:
+                        print(f"  output={avg_output_loss.item():.6f}, KL={avg_kl_loss.item():.6f}, "
+                              f"λ*KL={self._lambda * avg_kl_loss.item():.6f}")
                     
                     if use_entropy:
                         avg_ent_loss = total_ent_loss / num_layers
