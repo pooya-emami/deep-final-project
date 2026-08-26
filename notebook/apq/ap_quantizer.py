@@ -28,15 +28,16 @@ class QuantizedLinearSTE(nn.Module):
         self.register_buffer('initial_scale', init_scale.detach().clone())
         self.scale = nn.Parameter(init_scale)
     
-    def _calc_init_scale(self, weight: torch.Tensor) -> torch.Tensor:
-        if self.per_channel:
-            max_abs = torch.max(torch.abs(weight), dim=1, keepdim=True).values
-            max_abs = torch.clamp(max_abs, min=1e-8)
-            return max_abs / self.q_max * 0.8
-        else:
-            max_abs = torch.max(torch.abs(weight))
-            max_abs = max(max_abs, 1e-8)
-            return torch.ones(1, 1, device=weight.device) * max_abs / self.q_max * 0.8
+def _calc_init_scale(self, weight: torch.Tensor) -> torch.Tensor:
+    if self.per_channel:
+        # Standard LSQ init: 2 * mean(|W|) / sqrt(Q_max)
+        mean_abs = torch.mean(torch.abs(weight), dim=1, keepdim=True)
+        init_scale = 2.0 * mean_abs / math.sqrt(self.q_max)
+        return torch.clamp(init_scale, min=1e-5)
+    else:
+        mean_abs = torch.mean(torch.abs(weight))
+        init_scale = 2.0 * mean_abs / math.sqrt(self.q_max)
+        return torch.clamp(init_scale, min=1e-5)
 
     def set_bit_width(self, bit_width: int):
         self.bit_width = bit_width
@@ -482,7 +483,6 @@ class AttentionPreservingQuantizer:
         if count > 0 and l_kl_sum > 1e-8:
             lambda_val = l_output_sum / (l_kl_sum + 1e-8)
             lambda_val = max(1e-3, min(lambda_val, 1e3))
-            lambda_val = lambda_val * 0.01
             print(f"λ = {lambda_val:.4f}")
             return lambda_val
         else:
