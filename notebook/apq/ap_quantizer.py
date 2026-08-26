@@ -48,7 +48,7 @@ class QuantizedLinearSTE(nn.Module):
     def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
         # Clamp scale to prevent zero and bound it
         max_scale = self.initial_scale * 4.0
-        scale_clamped = torch.clamp(scale, min=1e-8, max=max_scale.item())
+        scale_clamped = torch.clamp(scale, min=1e-8, max=max_scale)
         
         w_scaled = weight / scale_clamped
         w_clamped = torch.clamp(w_scaled, -self.q_max, self.q_max)
