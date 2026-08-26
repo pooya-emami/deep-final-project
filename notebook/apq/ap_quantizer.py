@@ -154,7 +154,6 @@ class QuantizedAttention(nn.Module):
         self.v_proj.set_bit_width(bit_width)
         self.o_proj.set_bit_width(bit_width)
         
-        # If bit_width is 16, disable quantization entirely
         if bit_width == 16:
             self.enabled = False
     
@@ -177,7 +176,6 @@ class QuantizedAttention(nn.Module):
             v = self.v_proj(hidden_states, force_fp16=False)
         
         # Reshape for multi-head attention
-        # [batch, seq_len, num_heads * head_dim] -> [batch, num_heads, seq_len, head_dim]
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
@@ -185,26 +183,27 @@ class QuantizedAttention(nn.Module):
         # Compute attention scores
         attn_weights = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
         
-        # Apply attention mask
+        # Apply attention mask - MATCH GPT-2 EXACTLY
         if attention_mask is not None:
             if attention_mask.dim() == 4:
                 attn_weights = attn_weights + attention_mask
             elif attention_mask.dim() == 2:
-                # Causal mask for GPT-2
-                causal_mask = torch.triu(
-                    torch.ones((seq_len, seq_len), device=attn_weights.device), 
-                    diagonal=1
-                ).bool()
-                attn_weights = attn_weights.masked_fill(causal_mask, float('-inf'))
+                extended_mask = attention_mask[:, None, None, :]
+                extended_mask = (1.0 - extended_mask) * -10000.0
+                attn_weights = attn_weights + extended_mask
+        
+        # Causal mask - ALWAYS applied for GPT-2
+        causal_mask = torch.triu(
+            torch.ones((seq_len, seq_len), device=attn_weights.device), 
+            diagonal=1
+        ).bool()
+        attn_weights = attn_weights.masked_fill(causal_mask, float('-inf'))
         
         # Softmax
         P = F.softmax(attn_weights, dim=-1)
         
         # Compute attention output
-        # [batch, num_heads, seq_len, head_dim]
         attn_output = torch.matmul(P, v)
-        
-        # Reshape back to [batch, seq_len, embed_dim]
         attn_output = attn_output.transpose(1, 2).contiguous().view(
             batch_size, seq_len, self.embed_dim
         )
@@ -328,7 +327,6 @@ class AttentionPreservingQuantizer:
     def _set_quantization(self, enabled: bool, layer_indices: Optional[List[int]] = None):
         for attn in self._get_layers():
             if layer_indices is None or attn.layer_idx in layer_indices:
-                # Don't enable FP16 layers (they should always be FP16)
                 if enabled and attn.bit_width == 16:
                     continue
                 attn.enabled = enabled
@@ -379,13 +377,11 @@ class AttentionPreservingQuantizer:
                 handle = attn.register_forward_hook(make_hook(attn.layer_idx))
                 hooks.append(handle)
             
-            # Disable all quantization for FP16 reference
             for attn in self._get_layers():
                 attn.enabled = False
             
             _ = self._forward_with_attention(input_ids, attention_mask)
             
-            # Restore quantization state
             for attn in self._get_layers():
                 if attn.bit_width != 16:
                     attn.enabled = True
@@ -512,14 +508,11 @@ class AttentionPreservingQuantizer:
             
             self._compute_reference(input_ids, attention_mask)
             
-            # Temporarily disable all quantization
             for attn in self._get_layers():
                 attn.enabled = False
             
-            # Set bit width for target layer
             self._set_bit_width_for_layer(layer_idx, bit_width)
             
-            # Enable only target layer if it's not FP16
             if bit_width != 16:
                 for attn in self._get_layers():
                     if attn.layer_idx == layer_idx:
@@ -549,7 +542,6 @@ class AttentionPreservingQuantizer:
                     total_kl_loss += l_kl
                     num_layers += 1
             
-            # Restore all layers to original state
             for attn in self._get_layers():
                 attn.enabled = False
             
@@ -622,7 +614,6 @@ class AttentionPreservingQuantizer:
         if self._lambda is None:
             self._lambda = self._compute_lambda()
         
-        # Ensure FP16 layers are disabled
         for attn in self._get_layers():
             if attn.bit_width == 16:
                 attn.enabled = False
