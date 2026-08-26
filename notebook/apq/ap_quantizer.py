@@ -25,7 +25,7 @@ class QuantizedLinearSTE(nn.Module):
         self.per_channel = per_channel
         
         init_scale = self._calc_init_scale(weight)
-        self.register_buffer('initial_scale', init_scale.clone().detach())
+        self.register_buffer('initial_scale', init_scale.detach().clone())
         self.scale = nn.Parameter(init_scale)
     
     def _calc_init_scale(self, weight: torch.Tensor) -> torch.Tensor:
@@ -46,9 +46,12 @@ class QuantizedLinearSTE(nn.Module):
         self.scale.data.copy_(new_scale)
     
     def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
-        # Clamp scale to prevent zero and bound it
-        scale_clamped = torch.clamp(scale, min=1e-8)
+        # Lower bound: prevent division by zero
+        scale_clamped = scale.clamp(min=1e-8)
+        # Upper bound: per-channel tensor using minimum()
         scale_clamped = torch.minimum(scale_clamped, self.initial_scale * 4.0)
+        # Also lower bound: prevent collapse below 0.25x initial
+        scale_clamped = torch.maximum(scale_clamped, self.initial_scale * 0.25)
         
         w_scaled = weight / scale_clamped
         w_clamped = torch.clamp(w_scaled, -self.q_max, self.q_max)
@@ -65,13 +68,14 @@ class QuantizedLinearSTE(nn.Module):
             else:
                 return F.linear(x, self.weight_fp16)
         
+        # Use the same quantization path for both training and eval
         w_q = self.quantize(self.weight_fp16, self.scale)
         
         if self.bias_fp16 is not None:
             return F.linear(x, w_q, self.bias_fp16)
         else:
             return F.linear(x, w_q)
-        
+
 
 class QuantizedAttention(nn.Module):
     def __init__(self, original_attn: nn.Module, bit_width: int = 8, per_channel: bool = True):
@@ -250,7 +254,7 @@ class AttentionPreservingQuantizer:
         self._lambda = None
         self._sensitivity_matrix = None
         self.loss_history = []
-        self.reference_cache = {}
+        self.joint_loss_history = []
         
     def _prepare_calibration_data(self, texts: List[str]) -> DataLoader:
         dataset = CalibrationDataset(texts, self.tokenizer)
@@ -599,13 +603,16 @@ class AttentionPreservingQuantizer:
             print("WARNING: No active scale parameters found!")
             return
         
+        # FIX: No weight decay on scale parameters
         optimizer = torch.optim.AdamW(params_to_optimize, lr=self.config.lr, weight_decay=0.0)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_iterations, eta_min=1e-6)
         
         self.loss_history = []
+        self.joint_loss_history = []
         
         for iter_idx in tqdm(range(num_iterations), desc="Joint Calibration"):
             epoch_loss = 0.0
+            epoch_joint_loss = 0.0
             num_batches = 0
             
             for batch in self.calibration_dataloader:
@@ -662,16 +669,19 @@ class AttentionPreservingQuantizer:
                     optimizer.step()
                     
                     epoch_loss += loss.item()
+                    epoch_joint_loss += (avg_output_loss.item() + self._lambda * avg_kl_loss.item())
                     num_batches += 1
             
             scheduler.step()
             
             if num_batches > 0:
                 avg_loss = epoch_loss / num_batches
+                avg_joint_loss = epoch_joint_loss / num_batches
                 self.loss_history.append(avg_loss)
+                self.joint_loss_history.append(avg_joint_loss)
                 
                 if iter_idx % 10 == 0:
-                    print(f"Step {iter_idx}: Loss = {avg_loss:.6f}")
+                    print(f"Step {iter_idx}: Loss = {avg_loss:.6f}, Joint Loss = {avg_joint_loss:.6f}")
         
         print("\nJoint calibration complete!")
     
