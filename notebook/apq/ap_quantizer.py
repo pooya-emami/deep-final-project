@@ -103,7 +103,7 @@ class QuantizedAttention(nn.Module):
             
         elif hasattr(original_attn, "c_attn"):
             self.arch = "gpt"
-            W = original_attn.c_attn.weight  # [embed_dim, 3*embed_dim]
+            W = original_attn.c_attn.weight
             b = original_attn.c_attn.bias
             
             embed_dim = W.shape[0]
@@ -112,28 +112,27 @@ class QuantizedAttention(nn.Module):
             self.num_heads = original_attn.num_heads
             self.head_dim = embed_dim // self.num_heads
             
-            # CRITICAL FIX: Transpose weights because GPT-2 uses Conv1D (x @ W)
-            # F.linear uses x @ W.T, so we need to transpose
+            # GPT-2 Conv1D uses x @ W, F.linear uses x @ W.T, so transpose
             self.q_proj = QuantizedLinearSTE(
-                W[:, :qkv_dim].T,  # .T is the fix
+                W[:, :qkv_dim].T,
                 b[:qkv_dim] if b is not None else None,
                 bit_width,
                 per_channel
             )
             self.k_proj = QuantizedLinearSTE(
-                W[:, qkv_dim:2*qkv_dim].T,  # .T is the fix
+                W[:, qkv_dim:2*qkv_dim].T,
                 b[qkv_dim:2*qkv_dim] if b is not None else None,
                 bit_width,
                 per_channel
             )
             self.v_proj = QuantizedLinearSTE(
-                W[:, 2*qkv_dim:].T,  # .T is the fix
+                W[:, 2*qkv_dim:].T,
                 b[2*qkv_dim:] if b is not None else None,
                 bit_width,
                 per_channel
             )
             self.o_proj = QuantizedLinearSTE(
-                original_attn.c_proj.weight.T,  # .T is the fix
+                original_attn.c_proj.weight.T,
                 original_attn.c_proj.bias,
                 bit_width,
                 per_channel
@@ -177,25 +176,35 @@ class QuantizedAttention(nn.Module):
             k = self.k_proj(hidden_states, force_fp16=False)
             v = self.v_proj(hidden_states, force_fp16=False)
         
+        # Reshape for multi-head attention
+        # [batch, seq_len, num_heads * head_dim] -> [batch, num_heads, seq_len, head_dim]
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
+        # Compute attention scores
         attn_weights = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
         
+        # Apply attention mask
         if attention_mask is not None:
             if attention_mask.dim() == 4:
                 attn_weights = attn_weights + attention_mask
             elif attention_mask.dim() == 2:
+                # Causal mask for GPT-2
                 causal_mask = torch.triu(
                     torch.ones((seq_len, seq_len), device=attn_weights.device), 
                     diagonal=1
                 ).bool()
                 attn_weights = attn_weights.masked_fill(causal_mask, float('-inf'))
         
+        # Softmax
         P = F.softmax(attn_weights, dim=-1)
         
+        # Compute attention output
+        # [batch, num_heads, seq_len, head_dim]
         attn_output = torch.matmul(P, v)
+        
+        # Reshape back to [batch, seq_len, embed_dim]
         attn_output = attn_output.transpose(1, 2).contiguous().view(
             batch_size, seq_len, self.embed_dim
         )
@@ -328,7 +337,6 @@ class AttentionPreservingQuantizer:
         for attn in self._get_layers():
             if attn.layer_idx == layer_idx:
                 attn.set_bit_width(bit_width)
-                # If bit_width is 16, enabled is set to False in set_bit_width
                 break
     
     def _set_all_bit_widths(self, assignments: Dict[int, int]):
@@ -508,7 +516,7 @@ class AttentionPreservingQuantizer:
             for attn in self._get_layers():
                 attn.enabled = False
             
-            # Set bit width for target layer (this also sets enabled based on bit_width)
+            # Set bit width for target layer
             self._set_bit_width_for_layer(layer_idx, bit_width)
             
             # Enable only target layer if it's not FP16
