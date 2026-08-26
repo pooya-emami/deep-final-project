@@ -91,8 +91,8 @@ def compute_joint_loss(O: torch.Tensor, O_hat: torch.Tensor,
     Returns:
         Tuple of (total_loss, l_output, l_kl)
     """
-    l_out = compute_output_loss(O, O_hat, eps)
-    l_kl = compute_kl_loss(P, P_hat, eps=eps)
+    l_out = compute_output_loss(O, O_hat)
+    l_kl = compute_kl_loss(P, P_hat)
     return l_out + lam * l_kl, l_out, l_kl
 
 
@@ -115,9 +115,9 @@ def compute_joint_loss_with_entropy(O: torch.Tensor, O_hat: torch.Tensor,
     Returns:
         Tuple of (total_loss, l_output, l_kl, l_entropy)
     """
-    l_out = compute_output_loss(O, O_hat, eps)
-    l_kl = compute_kl_loss(P, P_hat, eps=eps)
-    l_ent = compute_entropy_loss(P, P_hat, eps)
+    l_out = compute_output_loss(O, O_hat)
+    l_kl = compute_kl_loss(P, P_hat)
+    l_ent = compute_entropy_loss(P, P_hat)
     return l_out + lam * l_kl + beta * l_ent, l_out, l_kl, l_ent
 
 
@@ -257,8 +257,8 @@ def compute_activation_weighted_loss(O: torch.Tensor, O_hat: torch.Tensor,
     Returns:
         Tuple of (total_loss, l_output, l_kl)
     """
-    l_out = compute_output_loss(O, O_hat, eps)
-    l_kl = compute_kl_loss(P, P_hat, eps=eps)
+    l_out = compute_output_loss(O, O_hat)
+    l_kl = compute_kl_loss(P, P_hat)
     
     if weight is not None:
         l_out = l_out * weight

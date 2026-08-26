@@ -1,3 +1,4 @@
+import copy
 import json
 import math
 from typing import Optional, Tuple, List, Dict, Any
@@ -28,16 +29,16 @@ class QuantizedLinearSTE(nn.Module):
         self.register_buffer('initial_scale', init_scale.detach().clone())
         self.scale = nn.Parameter(init_scale)
     
-def _calc_init_scale(self, weight: torch.Tensor) -> torch.Tensor:
-    if self.per_channel:
-        # Standard LSQ init: 2 * mean(|W|) / sqrt(Q_max)
-        mean_abs = torch.mean(torch.abs(weight), dim=1, keepdim=True)
-        init_scale = 2.0 * mean_abs / math.sqrt(self.q_max)
-        return torch.clamp(init_scale, min=1e-5)
-    else:
-        mean_abs = torch.mean(torch.abs(weight))
-        init_scale = 2.0 * mean_abs / math.sqrt(self.q_max)
-        return torch.clamp(init_scale, min=1e-5)
+    def _calc_init_scale(self, weight: torch.Tensor) -> torch.Tensor:
+        if self.per_channel:
+            # Standard LSQ init: 2 * mean(|W|) / sqrt(Q_max)
+            mean_abs = torch.mean(torch.abs(weight), dim=1, keepdim=True)
+            init_scale = 2.0 * mean_abs / math.sqrt(self.q_max)
+            return torch.clamp(init_scale, min=1e-5)
+        else:
+            mean_abs = torch.mean(torch.abs(weight))
+            init_scale = 2.0 * mean_abs / math.sqrt(self.q_max)
+            return torch.clamp(init_scale, min=1e-5)
 
     def set_bit_width(self, bit_width: int):
         self.bit_width = bit_width
@@ -211,7 +212,13 @@ class QuantizedAttention(nn.Module):
         self._last_O = attn_output
         self._last_attn_output = attn_output
         
-        return attn_output, P
+        # GPT2Block expects (attn_output, present, attn_weights) -- see modeling_gpt2.py:
+        # "attn_output = attn_outputs[0]  # output_attn: a, present, (attentions)".
+        # We don't implement KV caching, so present is always None. Returning a bare
+        # 2-tuple makes GPT2Block/GPT2Model drop or misindex P, corrupting outputs.attentions
+        # (verified: raises IndexError on outputs[2 if use_cache else 1] with the 2-tuple form).
+        present = None
+        return attn_output, present, P
 
 
 class CalibrationDataset(Dataset):
@@ -241,8 +248,17 @@ class AttentionPreservingQuantizer:
         self.config = config
         self.calibration_dataloader = self._prepare_calibration_data(calibration_texts)
         
-        self.original_model = model
-        
+        # Deep-copy BEFORE any in-place replacement, so original_model stays an
+        # independent, untouched fp16 reference. (Previously `self.original_model = model`
+        # aliased the same object that _replace_attention_modules() then mutated in place,
+        # so P_ref/O_ref ended up computed from the quantized model comparing against itself.)
+        self.original_model = copy.deepcopy(model)
+        self.original_model.eval()
+        for p in self.original_model.parameters():
+            p.requires_grad = False
+
+        self._original_state_dict = copy.deepcopy(model.state_dict())
+
         self._replace_attention_modules()
         
         self._lambda = None
@@ -343,6 +359,7 @@ class AttentionPreservingQuantizer:
             attention_mask=attention_mask,
             output_attentions=True,
             output_hidden_states=True,
+            use_cache=False,
             return_dict=True
         )
         return outputs
@@ -363,6 +380,7 @@ class AttentionPreservingQuantizer:
                 attention_mask=attention_mask,
                 output_attentions=True,
                 output_hidden_states=True,
+                use_cache=False,
                 return_dict=True
             )
 
