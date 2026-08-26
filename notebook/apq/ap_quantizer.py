@@ -47,8 +47,8 @@ class QuantizedLinearSTE(nn.Module):
     
     def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
         # Clamp scale to prevent zero and bound it
-        max_scale = self.initial_scale * 4.0
-        scale_clamped = torch.clamp(scale, min=1e-8, max=max_scale)
+        scale_clamped = torch.clamp(scale, min=1e-8)
+        scale_clamped = torch.minimum(scale_clamped, self.initial_scale * 4.0)
         
         w_scaled = weight / scale_clamped
         w_clamped = torch.clamp(w_scaled, -self.q_max, self.q_max)
@@ -71,7 +71,7 @@ class QuantizedLinearSTE(nn.Module):
             return F.linear(x, w_q, self.bias_fp16)
         else:
             return F.linear(x, w_q)
-
+        
 
 class QuantizedAttention(nn.Module):
     def __init__(self, original_attn: nn.Module, bit_width: int = 8, per_channel: bool = True):
