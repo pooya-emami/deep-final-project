@@ -24,7 +24,9 @@ class QuantizedLinearSTE(nn.Module):
         self.q_max = 2**(bit_width - 1) - 1
         self.per_channel = per_channel
         
+        # Store initial scale for clamping
         init_scale = self._calc_init_scale(weight)
+        self.register_buffer('initial_scale', init_scale.clone().detach())
         self.scale = nn.Parameter(init_scale)
     
     def _calc_init_scale(self, weight: torch.Tensor) -> torch.Tensor:
@@ -40,10 +42,13 @@ class QuantizedLinearSTE(nn.Module):
     def set_bit_width(self, bit_width: int):
         self.bit_width = bit_width
         self.q_max = 2**(bit_width - 1) - 1
-        self.scale.data.copy_(self._calc_init_scale(self.weight_fp16))
+        new_scale = self._calc_init_scale(self.weight_fp16)
+        self.initial_scale.data.copy_(new_scale.detach())
+        self.scale.data.copy_(new_scale)
     
     def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
-        scale_clamped = torch.clamp(scale, min=1e-8)
+        # Clamp scale to prevent zero and bound it
+        scale_clamped = torch.clamp(scale, min=1e-8, max=self.initial_scale * 4.0)
         
         w_scaled = weight / scale_clamped
         w_clamped = torch.clamp(w_scaled, -self.q_max, self.q_max)
@@ -198,14 +203,14 @@ class QuantizedAttention(nn.Module):
         )
         
         self._last_P = P
-        self._last_attention_output = attn_output  # Pre-o_proj
+        self._last_attention_output = attn_output
         
         if not self.enabled or self.bit_width == 16:
             attn_output = F.linear(attn_output, self.o_proj.weight_fp16, self.o_proj.bias_fp16)
         else:
             attn_output = self.o_proj(attn_output, force_fp16=False)
         
-        self._last_O = attn_output  # Post-o_proj
+        self._last_O = attn_output
         self._last_attn_output = attn_output
         
         return attn_output, P
@@ -238,7 +243,6 @@ class AttentionPreservingQuantizer:
         self.config = config
         self.calibration_dataloader = self._prepare_calibration_data(calibration_texts)
         
-        # Store original model BEFORE replacement for reference
         self.original_model = model
         
         self._replace_attention_modules()
@@ -346,9 +350,7 @@ class AttentionPreservingQuantizer:
         return outputs
     
     def _compute_reference_from_original(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
-        """Compute references from the ORIGINAL model (not the replaced one)"""
         with torch.no_grad():
-            # Forward pass on ORIGINAL model
             outputs_ref = self.original_model(
                 input_ids,
                 attention_mask=attention_mask,
@@ -357,71 +359,16 @@ class AttentionPreservingQuantizer:
                 return_dict=True
             )
             
-            # For each layer, get P and compute O from hidden states
             for idx, attn in enumerate(self._get_layers()):
                 if idx < len(outputs_ref.attentions):
                     P_ref = outputs_ref.attentions[idx]
-                    
-                    # Compute O = P @ V from hidden states
-                    # O_ref = hidden_states[idx+1] - hidden_states[idx] is approximate
-                    # Better: we can compute it manually if needed
                     if outputs_ref.hidden_states is not None and len(outputs_ref.hidden_states) > idx + 1:
-                        # This includes MLP contribution, but is the closest we can get
                         O_ref = outputs_ref.hidden_states[idx + 1] - outputs_ref.hidden_states[idx]
                     else:
                         O_ref = torch.zeros_like(input_ids.float()).unsqueeze(-1).expand(-1, -1, attn.embed_dim)
-                    
                     attn.set_fp_reference(P_ref, O_ref)
     
-    def _compute_reference_from_replaced_fp16(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
-        """Compute references from the REPLACED model with quantization disabled"""
-        with torch.no_grad():
-            captured = {}
-            
-            def make_hook(idx):
-                def hook_fn(module, input, output):
-                    if isinstance(output, tuple) and len(output) >= 2:
-                        captured[idx] = {
-                            'P': output[1].detach(),
-                            'O': output[0].detach()
-                        }
-                    elif hasattr(module, '_last_P') and hasattr(module, '_last_O'):
-                        captured[idx] = {
-                            'P': module._last_P.detach(),
-                            'O': module._last_O.detach()
-                        }
-                return hook_fn
-            
-            hooks = []
-            for attn in self._get_layers():
-                handle = attn.register_forward_hook(make_hook(attn.layer_idx))
-                hooks.append(handle)
-            
-            # Disable quantization (FP16 mode)
-            for attn in self._get_layers():
-                attn.enabled = False
-            
-            _ = self._forward_with_attention(input_ids, attention_mask)
-            
-            # Restore quantization state
-            for attn in self._get_layers():
-                if attn.bit_width != 16:
-                    attn.enabled = True
-            
-            for handle in hooks:
-                handle.remove()
-            
-            for attn in self._get_layers():
-                if attn.layer_idx in captured:
-                    attn.set_fp_reference(
-                        captured[attn.layer_idx]['P'],
-                        captured[attn.layer_idx]['O']
-                    )
-                elif hasattr(attn, '_last_P') and hasattr(attn, '_last_O'):
-                    attn.set_fp_reference(attn._last_P.detach(), attn._last_O.detach())
-    
     def _compute_reference(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
-        """Compute references - uses original model for accuracy"""
         self._compute_reference_from_original(input_ids, attention_mask)
     
     def _compute_lambda(self, num_steps: int = 5) -> float:
@@ -649,10 +596,11 @@ class AttentionPreservingQuantizer:
         print(f"Number of scale parameters to optimize: {len(params_to_optimize)}")
         
         if len(params_to_optimize) == 0:
-            print("WARNING: No active scale parameters found! (All layers at FP16?)")
+            print("WARNING: No active scale parameters found!")
             return
         
-        optimizer = torch.optim.AdamW(params_to_optimize, lr=self.config.lr, weight_decay=0.01)
+        # FIX 1: No weight decay on scale parameters
+        optimizer = torch.optim.AdamW(params_to_optimize, lr=self.config.lr, weight_decay=0.0)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_iterations, eta_min=1e-6)
         
         self.loss_history = []
@@ -703,10 +651,6 @@ class AttentionPreservingQuantizer:
                 if num_layers > 0:
                     avg_output_loss = total_output_loss / num_layers
                     avg_kl_loss = total_kl_loss / num_layers
-                    
-                    if iter_idx % 10 == 0:
-                        print(f"  output={avg_output_loss.item():.6f}, KL={avg_kl_loss.item():.6f}, "
-                              f"λ*KL={self._lambda * avg_kl_loss.item():.6f}")
                     
                     if use_entropy:
                         avg_ent_loss = total_ent_loss / num_layers
