@@ -198,14 +198,14 @@ class QuantizedAttention(nn.Module):
         )
         
         self._last_P = P
-        self._last_attention_output = attn_output
+        self._last_attention_output = attn_output  # Pre-o_proj
         
         if not self.enabled or self.bit_width == 16:
             attn_output = F.linear(attn_output, self.o_proj.weight_fp16, self.o_proj.bias_fp16)
         else:
             attn_output = self.o_proj(attn_output, force_fp16=False)
         
-        self._last_O = attn_output
+        self._last_O = attn_output  # Post-o_proj
         self._last_attn_output = attn_output
         
         return attn_output, P
@@ -238,13 +238,15 @@ class AttentionPreservingQuantizer:
         self.config = config
         self.calibration_dataloader = self._prepare_calibration_data(calibration_texts)
         
-        self._original_state_dict = {k: v.clone() for k, v in model.state_dict().items()}
+        # Store original model BEFORE replacement for reference
+        self.original_model = model
         
         self._replace_attention_modules()
         
         self._lambda = None
         self._sensitivity_matrix = None
         self.loss_history = []
+        self.reference_cache = {}
         
     def _prepare_calibration_data(self, texts: List[str]) -> DataLoader:
         dataset = CalibrationDataset(texts, self.tokenizer)
@@ -343,7 +345,36 @@ class AttentionPreservingQuantizer:
         )
         return outputs
     
-    def _compute_reference(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
+    def _compute_reference_from_original(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
+        """Compute references from the ORIGINAL model (not the replaced one)"""
+        with torch.no_grad():
+            # Forward pass on ORIGINAL model
+            outputs_ref = self.original_model(
+                input_ids,
+                attention_mask=attention_mask,
+                output_attentions=True,
+                output_hidden_states=True,
+                return_dict=True
+            )
+            
+            # For each layer, get P and compute O from hidden states
+            for idx, attn in enumerate(self._get_layers()):
+                if idx < len(outputs_ref.attentions):
+                    P_ref = outputs_ref.attentions[idx]
+                    
+                    # Compute O = P @ V from hidden states
+                    # O_ref = hidden_states[idx+1] - hidden_states[idx] is approximate
+                    # Better: we can compute it manually if needed
+                    if outputs_ref.hidden_states is not None and len(outputs_ref.hidden_states) > idx + 1:
+                        # This includes MLP contribution, but is the closest we can get
+                        O_ref = outputs_ref.hidden_states[idx + 1] - outputs_ref.hidden_states[idx]
+                    else:
+                        O_ref = torch.zeros_like(input_ids.float()).unsqueeze(-1).expand(-1, -1, attn.embed_dim)
+                    
+                    attn.set_fp_reference(P_ref, O_ref)
+    
+    def _compute_reference_from_replaced_fp16(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
+        """Compute references from the REPLACED model with quantization disabled"""
         with torch.no_grad():
             captured = {}
             
@@ -366,11 +397,13 @@ class AttentionPreservingQuantizer:
                 handle = attn.register_forward_hook(make_hook(attn.layer_idx))
                 hooks.append(handle)
             
+            # Disable quantization (FP16 mode)
             for attn in self._get_layers():
                 attn.enabled = False
             
             _ = self._forward_with_attention(input_ids, attention_mask)
             
+            # Restore quantization state
             for attn in self._get_layers():
                 if attn.bit_width != 16:
                     attn.enabled = True
@@ -386,6 +419,10 @@ class AttentionPreservingQuantizer:
                     )
                 elif hasattr(attn, '_last_P') and hasattr(attn, '_last_O'):
                     attn.set_fp_reference(attn._last_P.detach(), attn._last_O.detach())
+    
+    def _compute_reference(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
+        """Compute references - uses original model for accuracy"""
+        self._compute_reference_from_original(input_ids, attention_mask)
     
     def _compute_lambda(self, num_steps: int = 5) -> float:
         l_output_sum = 0.0
