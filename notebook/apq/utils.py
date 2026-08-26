@@ -168,36 +168,6 @@ def top_k_attention(P: torch.Tensor, k: int) -> torch.Tensor:
     return mask / (mask.sum(dim=-1, keepdim=True) + 1e-8)
 
 
-def compute_attention_entropy_stats(P: torch.Tensor) -> Dict[str, float]:
-    """
-    Compute statistics about attention entropy.
-    
-    Args:
-        P: Attention distribution
-    
-    Returns:
-        Dictionary of statistics
-    """
-    with torch.no_grad():
-        H = compute_entropy(P)
-        H_min = H.min().item()
-        H_max = H.max().item()
-        H_mean = H.mean().item()
-        H_std = H.std().item()
-        
-        # Compute effective number of tokens attended to
-        eff_tokens = torch.exp(H)
-        
-        return {
-            'entropy_mean': H_mean,
-            'entropy_std': H_std,
-            'entropy_min': H_min,
-            'entropy_max': H_max,
-            'effective_tokens_mean': eff_tokens.mean().item(),
-            'effective_tokens_std': eff_tokens.std().item(),
-        }
-
-
 class ActivationStats:
     """Track activation statistics for AWQ-style weighting"""
     
