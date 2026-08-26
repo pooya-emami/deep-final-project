@@ -24,7 +24,6 @@ class QuantizedLinearSTE(nn.Module):
         self.q_max = 2**(bit_width - 1) - 1
         self.per_channel = per_channel
         
-        # Store initial scale for clamping
         init_scale = self._calc_init_scale(weight)
         self.register_buffer('initial_scale', init_scale.clone().detach())
         self.scale = nn.Parameter(init_scale)
@@ -48,7 +47,8 @@ class QuantizedLinearSTE(nn.Module):
     
     def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
         # Clamp scale to prevent zero and bound it
-        scale_clamped = torch.clamp(scale, min=1e-8, max=self.initial_scale * 4.0)
+        max_scale = self.initial_scale * 4.0
+        scale_clamped = torch.clamp(scale, min=1e-8, max=max_scale.item())
         
         w_scaled = weight / scale_clamped
         w_clamped = torch.clamp(w_scaled, -self.q_max, self.q_max)
@@ -599,7 +599,6 @@ class AttentionPreservingQuantizer:
             print("WARNING: No active scale parameters found!")
             return
         
-        # FIX 1: No weight decay on scale parameters
         optimizer = torch.optim.AdamW(params_to_optimize, lr=self.config.lr, weight_decay=0.0)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=num_iterations, eta_min=1e-6)
         
