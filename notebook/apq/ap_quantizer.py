@@ -31,11 +31,11 @@ class QuantizedLinearSTE(nn.Module):
         if self.per_channel:
             max_abs = torch.max(torch.abs(weight), dim=1, keepdim=True).values
             max_abs = torch.clamp(max_abs, min=1e-8)
-            return max_abs / self.q_max * 1.5
+            return max_abs / self.q_max * 0.8
         else:
             max_abs = torch.max(torch.abs(weight))
             max_abs = max(max_abs, 1e-8)
-            return torch.ones(1, 1, device=weight.device) * max_abs / self.q_max * 1.5
+            return torch.ones(1, 1, device=weight.device) * max_abs / self.q_max * 0.8
 
     def set_bit_width(self, bit_width: int):
         self.bit_width = bit_width
@@ -54,19 +54,14 @@ class QuantizedLinearSTE(nn.Module):
         return w_quantized * scale_clamped
 
     def forward(self, x: torch.Tensor, force_fp16: bool = False) -> torch.Tensor:
-        # TRUE FP16 BYPASS
         if self.bit_width == 16 or force_fp16:
             if self.bias_fp16 is not None:
                 return F.linear(x, self.weight_fp16, self.bias_fp16)
             else:
                 return F.linear(x, self.weight_fp16)
         
-        # Quantized path
-        if not self.training and not torch.is_grad_enabled():
-            scale_clamped = torch.clamp(self.scale, min=1e-8)
-            w_q = torch.clamp(torch.round(self.weight_fp16 / scale_clamped), -self.q_max, self.q_max) * scale_clamped
-        else:
-            w_q = self.quantize(self.weight_fp16, self.scale)
+        # Consistent quantization for both training and inference
+        w_q = self.quantize(self.weight_fp16, self.scale)
         
         if self.bias_fp16 is not None:
             return F.linear(x, w_q, self.bias_fp16)
@@ -112,7 +107,6 @@ class QuantizedAttention(nn.Module):
             self.num_heads = original_attn.num_heads
             self.head_dim = embed_dim // self.num_heads
             
-            # GPT-2 Conv1D uses x @ W, F.linear uses x @ W.T, so transpose
             self.q_proj = QuantizedLinearSTE(
                 W[:, :qkv_dim].T,
                 b[:qkv_dim] if b is not None else None,
@@ -156,6 +150,8 @@ class QuantizedAttention(nn.Module):
         
         if bit_width == 16:
             self.enabled = False
+        else:
+            self.enabled = True
     
     def set_fp_reference(self, P: torch.Tensor, O: torch.Tensor):
         self._original_P = P.detach()
@@ -165,7 +161,6 @@ class QuantizedAttention(nn.Module):
                 **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size, seq_len, _ = hidden_states.shape
         
-        # FP16 pass or quantized pass
         if not self.enabled or self.bit_width == 16:
             q = F.linear(hidden_states, self.q_proj.weight_fp16, self.q_proj.bias_fp16)
             k = F.linear(hidden_states, self.k_proj.weight_fp16, self.k_proj.bias_fp16)
@@ -175,15 +170,12 @@ class QuantizedAttention(nn.Module):
             k = self.k_proj(hidden_states, force_fp16=False)
             v = self.v_proj(hidden_states, force_fp16=False)
         
-        # Reshape for multi-head attention
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # Compute attention scores
         attn_weights = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.head_dim)
         
-        # Apply attention mask - MATCH GPT-2 EXACTLY
         if attention_mask is not None:
             if attention_mask.dim() == 4:
                 attn_weights = attn_weights + attention_mask
@@ -192,17 +184,14 @@ class QuantizedAttention(nn.Module):
                 extended_mask = (1.0 - extended_mask) * -10000.0
                 attn_weights = attn_weights + extended_mask
         
-        # Causal mask - ALWAYS applied for GPT-2
         causal_mask = torch.triu(
             torch.ones((seq_len, seq_len), device=attn_weights.device), 
             diagonal=1
         ).bool()
         attn_weights = attn_weights.masked_fill(causal_mask, float('-inf'))
         
-        # Softmax
         P = F.softmax(attn_weights, dim=-1)
         
-        # Compute attention output
         attn_output = torch.matmul(P, v)
         attn_output = attn_output.transpose(1, 2).contiguous().view(
             batch_size, seq_len, self.embed_dim
@@ -211,7 +200,6 @@ class QuantizedAttention(nn.Module):
         self._last_P = P
         self._last_O = attn_output
         
-        # Output projection
         if not self.enabled or self.bit_width == 16:
             attn_output = F.linear(attn_output, self.o_proj.weight_fp16, self.o_proj.bias_fp16)
         else:
@@ -617,6 +605,8 @@ class AttentionPreservingQuantizer:
         for attn in self._get_layers():
             if attn.bit_width == 16:
                 attn.enabled = False
+            else:
+                attn.enabled = True
         
         params_to_optimize = self._get_active_scale_params()
         
