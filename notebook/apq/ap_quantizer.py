@@ -46,19 +46,12 @@ class QuantizedLinearSTE(nn.Module):
         self.scale.data.copy_(new_scale)
     
     def quantize(self, weight: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
-        # Lower bound: prevent division by zero
         scale_clamped = scale.clamp(min=1e-8)
-        # Upper bound: per-channel tensor using minimum()
-        scale_clamped = torch.minimum(scale_clamped, self.initial_scale * 4.0)
-        # Also lower bound: prevent collapse below 0.25x initial
-        scale_clamped = torch.maximum(scale_clamped, self.initial_scale * 0.25)
-        
         w_scaled = weight / scale_clamped
         w_clamped = torch.clamp(w_scaled, -self.q_max, self.q_max)
-        
         w_rounded = torch.round(w_clamped)
         w_quantized = w_clamped + (w_rounded - w_clamped).detach()
-        
+
         return w_quantized * scale_clamped
 
     def forward(self, x: torch.Tensor, force_fp16: bool = False) -> torch.Tensor:
@@ -353,7 +346,16 @@ class AttentionPreservingQuantizer:
         )
         return outputs
     
-    def _compute_reference_from_original(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
+    def _compute_reference_from_original(self, input_ids: torch.Tensor,
+                                         attention_mask: torch.Tensor):
+        """
+        Compute P_ref and O_ref from the ORIGINAL model.
+
+        For GPT-2:
+          - P_ref comes from outputs_ref.attentions[idx]
+          - V_ref is computed as X W_v (using original attn.c_attn)
+          - O_ref = P_ref @ V_ref (properly reshaped)
+        """
         with torch.no_grad():
             outputs_ref = self.original_model(
                 input_ids,
@@ -362,15 +364,72 @@ class AttentionPreservingQuantizer:
                 output_hidden_states=True,
                 return_dict=True
             )
-            
+
+            # Get original attention modules per layer
+            orig_attn_modules = []
+            if hasattr(self.original_model, 'transformer') and hasattr(self.original_model.transformer, 'h'):
+                # GPT-2 style
+                for block in self.original_model.transformer.h:
+                    if hasattr(block, 'attn'):
+                        orig_attn_modules.append(block.attn)
+            elif hasattr(self.original_model, 'model') and hasattr(self.original_model.model, 'layers'):
+                # LLaMA-style
+                for layer in self.original_model.model.layers:
+                    if hasattr(layer, 'self_attn'):
+                        orig_attn_modules.append(layer.self_attn)
+
+            # For each quantized attention layer, set P_ref and O_ref
             for idx, attn in enumerate(self._get_layers()):
-                if idx < len(outputs_ref.attentions):
-                    P_ref = outputs_ref.attentions[idx]
-                    if outputs_ref.hidden_states is not None and len(outputs_ref.hidden_states) > idx + 1:
-                        O_ref = outputs_ref.hidden_states[idx + 1] - outputs_ref.hidden_states[idx]
-                    else:
-                        O_ref = torch.zeros_like(input_ids.float()).unsqueeze(-1).expand(-1, -1, attn.embed_dim)
-                    attn.set_fp_reference(P_ref, O_ref)
+                if idx >= len(outputs_ref.attentions):
+                    break
+
+                P_ref = outputs_ref.attentions[idx]  # [B, H, T, T]
+
+                # Input to this block
+                if outputs_ref.hidden_states is not None and len(outputs_ref.hidden_states) > idx:
+                    X = outputs_ref.hidden_states[idx]  # [B, T, C]
+                else:
+                    # Fallback: use input_ids embedding shape
+                    B, T = input_ids.shape
+                    X = torch.zeros(B, T, attn.embed_dim, device=input_ids.device)
+
+                # Compute V_ref using original attention module
+                orig_attn = orig_attn_modules[idx]
+
+                if hasattr(orig_attn, "c_attn"):  # GPT-2 path
+                    W = orig_attn.c_attn.weight    # [C, 3C]
+                    b = orig_attn.c_attn.bias      # [3C] or None
+
+                    C = W.shape[0]
+                    qkv_dim = W.shape[1] // 3
+
+                    W_v = W[:, 2 * qkv_dim:]       # [C, C]
+                    b_v = b[2 * qkv_dim:] if b is not None else None
+
+                    V_ref = F.linear(X, W_v.T, b_v)  # [B, T, C]
+
+                elif hasattr(orig_attn, "v_proj"):  # LLaMA path
+                    W_v = orig_attn.v_proj.weight    # [C, C]
+                    b_v = orig_attn.v_proj.bias
+                    V_ref = F.linear(X, W_v, b_v)    # [B, T, C]
+
+                else:
+                    # Fallback: zero V_ref
+                    V_ref = torch.zeros_like(X)
+
+                # Reshape V_ref to [B, H, T, D]
+                B, T, C = V_ref.shape
+                H = attn.num_heads
+                D = attn.head_dim
+                V_ref_heads = V_ref.view(B, T, H, D).transpose(1, 2)  # [B, H, T, D]
+
+                # O_ref = P_ref @ V_ref_heads  → [B, H, T, D]
+                O_ref_heads = torch.matmul(P_ref, V_ref_heads)  # [B, H, T, D]
+
+                # Back to [B, T, C]
+                O_ref = O_ref_heads.transpose(1, 2).contiguous().view(B, T, C)
+
+                attn.set_fp_reference(P_ref, O_ref)
     
     def _compute_reference(self, input_ids: torch.Tensor, attention_mask: torch.Tensor):
         self._compute_reference_from_original(input_ids, attention_mask)
@@ -477,52 +536,52 @@ class AttentionPreservingQuantizer:
         
         return sensitivity
     
-    def _compute_loss_single_layer(self, batch: Tuple[torch.Tensor, torch.Tensor], 
-                                   layer_idx: int, bit_width: int) -> float:
+    def _compute_loss_single_layer(self, batch, layer_idx: int, bit_width: int) -> float:
         with torch.no_grad():
             input_ids, attention_mask = batch
             input_ids = input_ids.to(self.model.device)
             attention_mask = attention_mask.to(self.model.device)
-            
+
             self._compute_reference(input_ids, attention_mask)
-            
+
+            # Disable all, then enable only target layer
             for attn in self._get_layers():
                 attn.enabled = False
-            
+
             self._set_bit_width_for_layer(layer_idx, bit_width)
-            
+
             if bit_width != 16:
                 for attn in self._get_layers():
                     if attn.layer_idx == layer_idx:
                         attn.enabled = True
                         break
-            
+
             outputs_q = self._forward_with_attention(input_ids, attention_mask)
-            
+
             total_output_loss = 0.0
             total_kl_loss = 0.0
             num_layers = 0
-            
+
             for idx, attn in enumerate(self._get_layers()):
                 if idx < len(outputs_q.attentions):
                     P_hat = outputs_q.attentions[idx]
                     P_ref = attn._original_P
                     O_ref = attn._original_O
-                    
+
                     O_hat = getattr(attn, '_last_O', None)
                     if O_hat is None:
                         O_hat = torch.zeros_like(O_ref)
-                    
+
                     l_output = compute_output_loss(O_ref, O_hat)
-                    l_kl = compute_kl_loss(P_ref, P_hat)
-                    
+                    l_kl = compute_kl_loss(P_ref, P_hat, attention_mask)
+
                     total_output_loss += l_output
                     total_kl_loss += l_kl
                     num_layers += 1
-            
+
             for attn in self._get_layers():
                 attn.enabled = False
-            
+
             if num_layers > 0:
                 avg_output_loss = total_output_loss / num_layers
                 avg_kl_loss = total_kl_loss / num_layers
@@ -614,23 +673,23 @@ class AttentionPreservingQuantizer:
             epoch_loss = 0.0
             epoch_joint_loss = 0.0
             num_batches = 0
-            
+
             for batch in self.calibration_dataloader:
                 input_ids, attention_mask = batch
                 input_ids = input_ids.to(self.model.device)
                 attention_mask = attention_mask.to(self.model.device)
-                
+
                 self._compute_reference(input_ids, attention_mask)
-                
+
                 optimizer.zero_grad()
-                
+
                 outputs = self._forward_with_attention(input_ids, attention_mask)
-                
+
                 total_output_loss = 0.0
                 total_kl_loss = 0.0
                 total_ent_loss = 0.0
                 num_layers = 0
-                
+
                 for idx, attn in enumerate(self._get_layers()):
                     if attn.bit_width == 16:
                         continue
@@ -638,40 +697,40 @@ class AttentionPreservingQuantizer:
                         P_hat = outputs.attentions[idx]
                         P_ref = attn._original_P
                         O_ref = attn._original_O
-                        
+
                         O_hat = getattr(attn, '_last_O', None)
                         if O_hat is None:
                             O_hat = torch.zeros_like(O_ref)
-                        
+
                         l_output = compute_output_loss(O_ref, O_hat)
-                        l_kl = compute_kl_loss(P_ref, P_hat)
-                        
+                        l_kl = compute_kl_loss(P_ref, P_hat, attention_mask)
+
                         if use_entropy:
-                            l_ent = compute_entropy_loss(P_ref, P_hat)
+                            l_ent = compute_entropy_loss(P_ref, P_hat, attention_mask)
                             total_ent_loss += l_ent
-                        
+
                         total_output_loss += l_output
                         total_kl_loss += l_kl
                         num_layers += 1
-                
+
                 if num_layers > 0:
                     avg_output_loss = total_output_loss / num_layers
                     avg_kl_loss = total_kl_loss / num_layers
-                    
+
                     if use_entropy:
                         avg_ent_loss = total_ent_loss / num_layers
                         loss = avg_output_loss + self._lambda * avg_kl_loss + beta * avg_ent_loss
                     else:
                         loss = avg_output_loss + self._lambda * avg_kl_loss
-                    
+
                     loss.backward()
                     torch.nn.utils.clip_grad_norm_(params_to_optimize, gradient_clip)
                     optimizer.step()
-                    
+
                     epoch_loss += loss.item()
                     epoch_joint_loss += (avg_output_loss.item() + self._lambda * avg_kl_loss.item())
                     num_batches += 1
-            
+
             scheduler.step()
             
             if num_batches > 0:

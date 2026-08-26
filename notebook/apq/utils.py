@@ -4,88 +4,74 @@ from typing import Optional, Tuple, Dict, List
 import numpy as np
 
 
-def compute_output_loss(O: torch.Tensor, O_hat: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+def compute_output_loss(O_ref: torch.Tensor, O_hat: torch.Tensor) -> torch.Tensor:
     """
-    Compute normalized Frobenius loss for output preservation.
-    
-    Args:
-        O: Reference FP16 output
-        O_hat: Quantized output
-        eps: Small constant for numerical stability
-    
-    Returns:
-        Normalized Frobenius loss
+    Normalized Frobenius loss, as in the proposal:
+    L_output = ||O_ref - O_hat||_F / (||O_ref||_F + eps)
     """
-    diff = O_hat - O
-    return torch.norm(diff, p='fro')**2 / (torch.norm(O, p='fro')**2 + eps)
+    eps = 1e-8
+    diff = O_ref - O_hat
+    num = torch.norm(diff, p='fro')
+    denom = torch.norm(O_ref, p='fro') + eps
+    return num / denom
 
 
-def compute_kl_loss(P: torch.Tensor, P_hat: torch.Tensor, 
-                    mask: Optional[torch.Tensor] = None, 
-                    eps: float = 1e-8) -> torch.Tensor:
+def compute_kl_loss(P_ref: torch.Tensor, P_hat: torch.Tensor,
+                    attn_mask: torch.Tensor = None) -> torch.Tensor:
     """
-    Compute KL divergence between attention distributions.
-    
-    Args:
-        P: Reference attention distribution [batch, num_heads, seq_len, seq_len]
-        P_hat: Quantized attention distribution [batch, num_heads, seq_len, seq_len]
-        mask: Optional mask [batch, seq_len] for valid positions
-        eps: Small constant for numerical stability
-    
-    Returns:
-        KL divergence averaged over batch and heads
+    KL(P_ref || P_hat), averaged over valid query positions only.
+    P_ref, P_hat: [B, H, T, T]
+    attn_mask: [B, T] with 1 for valid tokens, 0 for padding.
     """
-    # KL(P || P_hat) = sum(P * log(P/P_hat)) over keys dimension
-    kl = P * (torch.log(P + eps) - torch.log(P_hat + eps))
-    
-    # Sum over key dimension (last dim)
-    kl_sum = kl.sum(dim=-1)  # [batch, num_heads, seq_len]
-    
-    # Apply mask if provided
-    if mask is not None:
-        # Expand mask to match dimensions
-        if mask.dim() == 2:
-            mask = mask.unsqueeze(1).unsqueeze(-1)  # [batch, 1, seq_len, 1]
-            kl_sum = kl_sum * mask.squeeze(-1)
-        elif mask.dim() == 3:
-            mask = mask.unsqueeze(1)  # [batch, 1, seq_len, seq_len]
-            kl = kl * mask
-            kl_sum = kl.sum(dim=-1)
-    
-    # Average over all dimensions
-    return kl_sum.mean()
+    eps = 1e-8
+    P_ref = P_ref.clamp(min=eps, max=1.0)
+    P_hat = P_hat.clamp(min=eps, max=1.0)
+
+    log_P_ref = torch.log(P_ref)
+    log_P_hat = torch.log(P_hat)
+
+    kl = (P_ref * (log_P_ref - log_P_hat))  # [B, H, T, T]
+
+    if attn_mask is not None:
+        # attn_mask: [B, T] → [B, 1, T, 1] to mask query positions
+        q_mask = (attn_mask == 1).unsqueeze(1).unsqueeze(-1)  # [B, 1, T, 1]
+        kl = kl * q_mask
+
+        valid_queries = q_mask.sum()
+        if valid_queries > 0:
+            return kl.sum() / valid_queries
+        else:
+            return kl.mean()
+    else:
+        return kl.mean()
 
 
-def compute_entropy(P: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
+def compute_entropy_loss(P_ref: torch.Tensor, P_hat: torch.Tensor,
+                         attn_mask: torch.Tensor = None) -> torch.Tensor:
     """
-    Compute entropy of attention distribution.
-    
-    Args:
-        P: Attention distribution [batch, num_heads, seq_len, seq_len]
-        eps: Small constant for numerical stability
-    
-    Returns:
-        Entropy averaged over batch and heads
+    Optional entropy-preservation loss:
+    |H(P_ref) - H(P_hat)|, averaged over valid query positions.
     """
-    return -(P * torch.log(P + eps)).sum(dim=-1).mean()
+    eps = 1e-8
+    P_ref = P_ref.clamp(min=eps, max=1.0)
+    P_hat = P_hat.clamp(min=eps, max=1.0)
 
+    H_ref = -(P_ref * torch.log(P_ref)).sum(dim=-1)  # [B, H, T]
+    H_hat = -(P_hat * torch.log(P_hat)).sum(dim=-1)  # [B, H, T]
 
-def compute_entropy_loss(P: torch.Tensor, P_hat: torch.Tensor, 
-                         eps: float = 1e-8) -> torch.Tensor:
-    """
-    Compute absolute difference in entropy between FP and quantized distributions.
-    
-    Args:
-        P: Reference attention distribution
-        P_hat: Quantized attention distribution
-        eps: Small constant for numerical stability
-    
-    Returns:
-        Absolute entropy difference
-    """
-    H = compute_entropy(P, eps)
-    H_hat = compute_entropy(P_hat, eps)
-    return torch.abs(H - H_hat)
+    ent_diff = torch.abs(H_ref - H_hat)  # [B, H, T]
+
+    if attn_mask is not None:
+        q_mask = (attn_mask == 1).unsqueeze(1)  # [B, 1, T]
+        ent_diff = ent_diff * q_mask
+
+        valid_queries = q_mask.sum()
+        if valid_queries > 0:
+            return ent_diff.sum() / valid_queries
+        else:
+            return ent_diff.mean()
+    else:
+        return ent_diff.mean()
 
 
 def compute_joint_loss(O: torch.Tensor, O_hat: torch.Tensor,
