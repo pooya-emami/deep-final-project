@@ -1,122 +1,150 @@
 """
-Objective 2: Full-Curve Sensitivity Allocation (AP-Quant proposal, eq. 11-13).
+Objective 2: Full-Curve Sensitivity Allocation.
 
-Measures a 5-point sensitivity curve per attention block, then allocates
-bit-widths as a Multiple-Choice Knapsack Problem solved exactly via DP.
-No training, no backprop -- everything here is forward passes + a
-combinatorial optimizer.
+`compute_sensitivity_matrix` and `solve_mckp` below are copied from the
+teammate's merged notebook (ap-quant.ipynb) -- NOT my earlier reimplementation.
+compute_sensitivity_matrix depends on quantize_transformer_attn/collect_layer_inputs/
+compute_ap_loss_improved from ap_quant_common.py, which are the same functions
+Objective 1's calibration step uses -- so both objectives measure things the
+same way and the bit_assignment this produces is meaningful input to that step.
 
-Depends on ap_quant_common.py (same directory).
+Do not hand-edit compute_sensitivity_matrix or solve_mckp -- if the teammate's
+notebook changes, re-copy from there instead.
 """
 import json
 
+import numpy as np
 import torch
 
 from ap_quant_common import (
     Config,
+    device,
     load_model_and_tokenizer,
-    load_calibration_dataset,
-    calib_dataset_to_tensors,
-    get_P_and_O,
-    joint_loss,
+    load_calibration_data,
+    detect_arch,
+    quantize_transformer_attn,
+    collect_layer_inputs,
+    compute_ap_loss_improved,
 )
 
-PROJ_NAMES = ["q_proj", "k_proj", "v_proj"]
-
-
-def fake_quantize(W, bits, per_channel=True):
-    """Symmetric round-to-nearest -- ONLY for measuring sensitivity.
-    The learned LSQ quantizer (Objective 1) is a separate, gradient-trained
-    module; this one just needs to be a reasonable stand-in so the sensitivity
-    ordering across blocks/bit-widths is meaningful."""
-    qmax = 2 ** (bits - 1) - 1
-    dim = 1 if per_channel else None
-    max_val = W.abs().amax(dim=dim, keepdim=per_channel).clamp(min=1e-8)
-    delta = max_val / qmax
-    return torch.clamp(torch.round(W / delta), -qmax, qmax) * delta
-
 
 @torch.no_grad()
-def cache_reference(model, calib_tensors):
-    """Runs the full-precision model once per calibration example and caches
-    P, O for every layer. This is the (O, P) that every quantized variant is
-    compared against."""
-    ref_P, ref_O = [], []
-    for ids in calib_tensors:
-        P, O = get_P_and_O(model, ids)
-        ref_P.append(P)
-        ref_O.append(O)
-    return ref_P, ref_O
+def compute_sensitivity_matrix(
+    model,
+    calib_tokens,
+    candidate_bits,
+    temp: float = 2.0,
+    device: str = "cuda",
+    lambda_samples: int = 8,
+):
+    """
+    Sensitivity matrix for mixed-precision AP-Quant.
 
+    - Baseline: FP32 model vs RTN-quantized attention (no sequential calibration).
+    - Inputs: post-LayerNorm activations collected from FP32 forward.
+    - For each layer and bit-width, we measure AP loss between FP32 and quantized
+      attention outputs, using fixed RTN scales for that bit-width.
+    """
 
-@torch.no_grad()
-def _quantize_block(model, layer_idx, bits):
-    attn = model.model.layers[layer_idx].self_attn
-    orig = {n: getattr(attn, n).weight.data.clone() for n in PROJ_NAMES}
-    for n in PROJ_NAMES:
-        getattr(attn, n).weight.data = fake_quantize(orig[n], bits=bits)
-    return orig
+    # 1) Quantize attention blocks with RTN scales (QKV-only, FP32 Wo)
+    arch, q_attn_blocks = quantize_transformer_attn(model, layer_bits=None)
 
+    # 2) Collect FP32 layer inputs (post-LN) once
+    for q_attn in q_attn_blocks:
+        q_attn.force_fp_mode = True  # attention runs in FP32
 
-@torch.no_grad()
-def _restore_block(model, layer_idx, orig):
-    attn = model.model.layers[layer_idx].self_attn
-    for n in PROJ_NAMES:
-        getattr(attn, n).weight.data = orig[n]
+    layer_inputs = collect_layer_inputs(model, arch, calib_tokens, device)
 
+    for q_attn in q_attn_blocks:
+        q_attn.force_fp_mode = False  # back to quantized mode when needed
 
-@torch.no_grad()
-def measure_block_sensitivity(model, calib_tensors, layer_idx, bits, lam, ref_P, ref_O):
-    """Quantizes ONLY q/k/v of `layer_idx` to `bits` (rest of the model stays
-    full precision), runs the calibration set, and returns the average joint
-    loss for that layer relative to the cached full-precision reference.
-    Eq. (12): Li(b)."""
-    orig = _quantize_block(model, layer_idx, bits)
-    total = 0.0
-    for ex, ids in enumerate(calib_tensors):
-        P_q, O_q = get_P_and_O(model, ids)
-        loss, _, _ = joint_loss(
-            ref_P[ex][layer_idx], ref_O[ex][layer_idx],
-            P_q[layer_idx], O_q[layer_idx], lam=lam,
-        )
-        total += loss.item()
-    _restore_block(model, layer_idx, orig)
-    return total / len(calib_tensors)
+    # 3) Estimate a global λ from a few layers, comparing FP32 vs 4-bit RTN
+    lam_values = []
+    valid_layers = [i for i in range(len(q_attn_blocks)) if len(layer_inputs[i]) > 0]
+    if not valid_layers:
+        raise RuntimeError("No layer inputs collected; cannot estimate lambda.")
 
+    num_layers_to_use = min(3, len(valid_layers))
+    layers_to_use = valid_layers[:num_layers_to_use]
 
-@torch.no_grad()
-def estimate_lambda(model, calib_tensors, ref_P, ref_O, ref_bits=4):
-    """Eq. (10): lambda = mean(L_output) / mean(L_KL), estimated ONCE at a
-    reference bit-width and then held fixed for the entire sensitivity table
-    -- otherwise L_i(b) values at different b would not be comparable and
-    the MCKP allocation would be meaningless."""
-    n_layers = len(model.model.layers)
-    l_out_sum, l_kl_sum, n = 0.0, 0.0, 0
-    for i in range(n_layers):
-        orig = _quantize_block(model, i, ref_bits)
-        for ex, ids in enumerate(calib_tensors):
-            P_q, O_q = get_P_and_O(model, ids)
-            _, l_out, l_kl = joint_loss(ref_P[ex][i], ref_O[ex][i], P_q[i], O_q[i], lam=1.0)
-            l_out_sum += l_out
-            l_kl_sum += l_kl
-            n += 1
-        _restore_block(model, i, orig)
-    return (l_out_sum / n) / max(l_kl_sum / n, 1e-8)
+    for layer_idx in layers_to_use:
+        q_attn = q_attn_blocks[layer_idx]
 
+        # ensure reference bit-width is 4-bit RTN
+        q_attn.q_proj.set_bits(4)
+        q_attn.k_proj.set_bits(4)
+        q_attn.v_proj.set_bits(4)
 
-@torch.no_grad()
-def build_sensitivity_table(model, calib_tensors, candidate_bits, lam, ref_P, ref_O, verbose=True):
-    n_layers = len(model.model.layers)
-    sensitivity = {i: {} for i in range(n_layers)}
-    for i in range(n_layers):
-        for b in candidate_bits:
-            sensitivity[i][b] = measure_block_sensitivity(
-                model, calib_tensors, i, b, lam, ref_P, ref_O
+        n_samples = min(lambda_samples, len(layer_inputs[layer_idx]))
+        sample_indices = np.random.choice(len(layer_inputs[layer_idx]), n_samples, replace=False)
+
+        for idx in sample_indices:
+            inp = layer_inputs[layer_idx][idx].to(device)
+
+            # FP32 path
+            q_attn.force_fp_mode = True
+            P_fp, O_fp, mask = q_attn.forward_components(inp, use_quant=False)
+
+            # 4-bit RTN path
+            q_attn.force_fp_mode = False
+            P_q, O_q, _ = q_attn.forward_components(inp, use_quant=True)
+
+            _, l_out_0, l_kl_0, _ = compute_ap_loss_improved(
+                P_fp, O_fp, P_q, O_q, mask,
+                lam=1.0,
+                temp=temp,
             )
-        if verbose:
-            row = ", ".join(f"{b}b={sensitivity[i][b]:.4f}" for b in candidate_bits)
-            print(f"layer {i:2d}: {row}")
-    return sensitivity
+
+            lam_values.append(float(l_out_0 / (l_kl_0 + 1e-8)))
+
+    lam = np.mean(lam_values) if lam_values else 1.0
+    lam = min(max(lam, 0.01), 10.0)
+    print(f"[Sensitivity] λ = {lam:.4f}")
+
+    # 4) Build sensitivity matrix: per-layer, per-bit AP loss vs FP32
+    sensitivity = {i: {} for i in range(len(q_attn_blocks))}
+
+    for layer_idx, q_attn in enumerate(q_attn_blocks):
+        if len(layer_inputs[layer_idx]) == 0:
+            continue
+
+        print(f"layer {layer_idx:02d}:", end=" ")
+
+        for bits in candidate_bits:
+            # RTN scales for this bit-width
+            q_attn.q_proj.set_bits(bits)
+            q_attn.k_proj.set_bits(bits)
+            q_attn.v_proj.set_bits(bits)
+
+            total_l_joint = 0.0
+            n_samples = len(layer_inputs[layer_idx])
+
+            for inp in layer_inputs[layer_idx]:
+                inp = inp.to(device)
+
+                # FP32 reference
+                q_attn.force_fp_mode = True
+                P_fp, O_fp, mask = q_attn.forward_components(inp, use_quant=False)
+
+                # quantized at `bits`
+                q_attn.force_fp_mode = False
+                P_q, O_q, _ = q_attn.forward_components(inp, use_quant=True)
+
+                l_joint, _, _, _ = compute_ap_loss_improved(
+                    P_fp, O_fp, P_q, O_q, mask,
+                    lam=lam,
+                    temp=temp,
+                )
+                total_l_joint += l_joint.item()
+
+            avg_loss = total_l_joint / max(n_samples, 1)
+            sensitivity[layer_idx][bits] = avg_loss
+
+            print(f"{bits}b={avg_loss:.4f}", end=", ")
+
+        print()  # newline per layer
+
+    return sensitivity, lam
 
 
 def solve_mckp(sensitivity, cost, budget, candidate_bits):
@@ -151,7 +179,7 @@ def solve_mckp(sensitivity, cost, budget, candidate_bits):
 
 
 def save_results(path, assignment, sensitivity, lam):
-    """Hand-off point for your teammate's Objective 1: this JSON says which
+    """Hand-off point for Objective 1's calibration step: this JSON says which
     bit-width each attention block should be trained at."""
     payload = {
         "lambda": lam,
@@ -175,27 +203,35 @@ def load_results(path):
 
 
 def run_objective2(cfg: Config):
-    """End-to-end: load model -> load calibration data -> estimate lambda ->
-    build the 5-point sensitivity curve -> solve MCKP -> save results."""
+    """End-to-end, matching ap-quant.ipynb's driver cell: load model -> load
+    calibration data -> compute_sensitivity_matrix -> solve_mckp -> save results."""
     model, tokenizer = load_model_and_tokenizer(cfg)
-    calib_ds = load_calibration_dataset(cfg, tokenizer)
-    calib_tensors = calib_dataset_to_tensors(calib_ds)
-    print(f"{len(calib_tensors)} calibration examples loaded from '{cfg.cal_dataset}'")
+    calib_tokens, eval_tokens = load_calibration_data(cfg, tokenizer)
+    print(f"{len(calib_tokens)} calibration chunks, {len(eval_tokens)} evaluation chunks")
 
-    n_layers = len(model.model.layers)
-    ref_P, ref_O = cache_reference(model, calib_tensors)
+    if hasattr(model.config, "n_layer"):
+        n_layers = model.config.n_layer
+    elif hasattr(model.config, "num_hidden_layers"):
+        n_layers = model.config.num_hidden_layers
+    else:
+        raise ValueError("Unknown model config - cannot determine number of layers")
 
-    lam = estimate_lambda(model, calib_tensors, ref_P, ref_O, ref_bits=cfg.lambda_ref_bits)
-    print(f"estimated lambda = {lam:.4f}")
-
-    sensitivity = build_sensitivity_table(
-        model, calib_tensors, cfg.candidate_bits, lam, ref_P, ref_O
+    sensitivity, lam = compute_sensitivity_matrix(
+        model=model,
+        calib_tokens=calib_tokens,
+        candidate_bits=cfg.candidate_bits,
+        temp=cfg.temp,
+        device=device,
+        lambda_samples=cfg.lambda_samples,
     )
 
     cost = {b: b for b in cfg.candidate_bits}
     budget = cfg.target_avg_bits * n_layers
     assignment, total_loss = solve_mckp(sensitivity, cost, budget, cfg.candidate_bits)
     achieved_avg = sum(cost[assignment[i]] for i in range(n_layers)) / n_layers
+
+    print("lambda used:", lam)
+    print("bit assignment:", assignment)
     print(f"total joint loss at this budget: {total_loss:.4f}")
     print(f"achieved average bit-width: {achieved_avg:.2f} (target: {cfg.target_avg_bits})")
 
