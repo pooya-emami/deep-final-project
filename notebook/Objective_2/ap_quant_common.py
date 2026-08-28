@@ -543,8 +543,8 @@ class Config:
     # with Llama-3.2-1B commented out. If the team decides to finalize on
     # Llama (to match Quant_Baseline.ipynb's GPTQ/AWQ comparison), swap this
     # -- everything below already supports both via detect_arch().
-    model_id: str = "openai-community/gpt2"
-    # model_id: str = "unsloth/Llama-3.2-1B-Instruct"
+    # model_id: str = "openai-community/gpt2"
+    model_id: str = "unsloth/Llama-3.2-1B-Instruct"
 
     num_calib_examples: int = 256
     num_eval_examples: int = 256
