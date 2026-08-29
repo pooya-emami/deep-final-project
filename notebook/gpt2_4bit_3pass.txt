@@ -1,0 +1,1143 @@
+======================================================================
+AP-QUANT: JOINT CALIBRATION (ALL LAYERS, FIXED 4-BIT, DYNAMIC λ, QKV-ONLY + FP32 Wo, GPT2+LLaMA)
+SEED: 42
+======================================================================
+Device: cuda
+
+Loading open-platypus dataset...
+Calibration chunks: 287 → 104 batches (batch_size=8)
+Evaluation chunks: 291 → 100 batches
+
+======================================================================
+STEP 1: BASELINE (NATIVE PRECISION)
+======================================================================
+
+Loading weights: 100%
+ 148/148 [00:00<00:00, 654.24it/s, Materializing param=transformer.wte.weight]
+
+GPT2LMHeadModel LOAD REPORT from: openai-community/gpt2
+Key                  | Status     |  | 
+---------------------+------------+--+-
+h.{0...11}.attn.bias | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+Model dtype: torch.float32
+Model will run in its native precision: torch.float32
+Baseline Perplexity: 23.39
+
+======================================================================
+STEP 2: UNOPTIMIZED 4-BIT BASELINE (QKV-ONLY + FP32 Wo)
+======================================================================
+
+Loading weights: 100%
+ 148/148 [00:00<00:00, 609.56it/s, Materializing param=transformer.wte.weight]
+
+GPT2LMHeadModel LOAD REPORT from: openai-community/gpt2
+Key                  | Status     |  | 
+---------------------+------------+--+-
+h.{0...11}.attn.bias | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+  GPT2 layer 00: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 01: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 02: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 03: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 04: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 05: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 06: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 07: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 08: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 09: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 10: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 11: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+Unoptimized 4-bit Perplexity (gpt2): 25.57
+
+======================================================================
+STEP 3: SENSITIVITY ANALYSIS
+======================================================================
+
+Loading weights: 100%
+ 148/148 [00:00<00:00, 641.10it/s, Materializing param=transformer.wte.weight]
+
+GPT2LMHeadModel LOAD REPORT from: openai-community/gpt2
+Key                  | Status     |  | 
+---------------------+------------+--+-
+h.{0...11}.attn.bias | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+  GPT2 layer 00: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 01: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 02: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 03: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 04: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 05: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 06: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 07: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 08: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 09: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 10: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 11: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+[Sensitivity] λ = 0.8402
+layer 00: 2b=3.0426, 3b=0.2717, 4b=0.0453, 8b=0.0001, 16b=0.0000, 
+layer 01: 2b=1.5717, 3b=0.1900, 4b=0.0434, 8b=0.0001, 16b=0.0000, 
+layer 02: 2b=5.8399, 3b=0.7751, 4b=0.1872, 8b=0.0005, 16b=0.0000, 
+layer 03: 2b=6.4287, 3b=1.8018, 4b=0.3265, 8b=0.0013, 16b=0.0000, 
+layer 04: 2b=4.8139, 3b=1.3158, 4b=0.1982, 8b=0.0009, 16b=0.0000, 
+layer 05: 2b=6.2905, 3b=1.2344, 4b=0.2282, 8b=0.0007, 16b=0.0000, 
+layer 06: 2b=4.5209, 3b=1.1356, 4b=0.2308, 8b=0.0011, 16b=-0.0000, 
+layer 07: 2b=4.1837, 3b=1.1099, 4b=0.2560, 8b=0.0010, 16b=0.0000, 
+layer 08: 2b=3.2838, 3b=0.8400, 4b=0.2003, 8b=0.0006, 16b=0.0000, 
+layer 09: 2b=2.7013, 3b=0.8136, 4b=0.1881, 8b=0.0007, 16b=-0.0000, 
+layer 10: 2b=2.6324, 3b=0.6538, 4b=0.1572, 8b=0.0005, 16b=0.0000, 
+layer 11: 2b=2.4682, 3b=0.4893, 4b=0.0958, 8b=0.0004, 16b=0.0000, 
+lambda used: 0.8401849182943503
+bit assignment: {11: 4, 10: 4, 9: 4, 8: 4, 7: 4, 6: 4, 5: 4, 4: 4, 3: 4, 2: 4, 1: 4, 0: 4}
+
+======================================================================
+STEP 4: SEQUENTIAL AP-QUANT CALIBRATION (PRECISION-AWARE)
+======================================================================
+
+Loading weights: 100%
+ 148/148 [00:00<00:00, 673.48it/s, Materializing param=transformer.wte.weight]
+
+GPT2LMHeadModel LOAD REPORT from: openai-community/gpt2
+Key                  | Status     |  | 
+---------------------+------------+--+-
+h.{0...11}.attn.bias | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+  GPT2 layer 00: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 01: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 02: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 03: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 04: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 05: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 06: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 07: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 08: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 09: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 10: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 11: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+
+======================================================================
+AP-QUANT: SEQUENTIAL CALIBRATION (GPT2, 4-BIT, DYNAMIC λ, QKV-ONLY + FP32 Wo)
+Steps/layer: 200, Batch size: 4, Passes: 3
+Full validation set checkpointing: ENABLED
+======================================================================
+
+  Initializing scales with RTN...
+  raw_scale dtypes after initialization:
+    Layer 00: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 01: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 02: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 03: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 04: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 05: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 06: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 07: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 08: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 09: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 10: q=torch.float32, k=torch.float32, v=torch.float32
+    Layer 11: q=torch.float32, k=torch.float32, v=torch.float32
+
+======================================================================
+SEQUENTIAL CALIBRATION PASS 1/3
+======================================================================
+
+--- Calibrating layer 00 (pass 1) ---
+  Layer 00: 259 train, 28 val samples
+
+/tmp/ipykernel_58/2233848261.py:918: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  lam_val = float(l_out_0 / (l_kl_0 + 1e-8))
+
+  Initial λ: 0.4271
+  Layer 00 Step [001/200] | Train: 0.034439 | Val: 0.028368 | L_Out: 0.016545 | L_KL: 0.041894 | MSE: 0.000427 | λ: 0.4271 | Temp: 1.998
+  Layer 00 Step [010/200] | Train: 0.028238 | Val: 0.027509 | L_Out: 0.013850 | L_KL: 0.033688 | MSE: 0.000345 | λ: 0.4191 | Temp: 1.980
+  Layer 00 Step [020/200] | Train: 0.030647 | Val: 0.027388 | L_Out: 0.015833 | L_KL: 0.035344 | MSE: 0.000375 | λ: 0.4335 | Temp: 1.960
+  Layer 00 Step [030/200] | Train: 0.028492 | Val: 0.026507 | L_Out: 0.013330 | L_KL: 0.034972 | MSE: 0.000347 | λ: 0.4074 | Temp: 1.941
+  Layer 00 Step [040/200] | Train: 0.029602 | Val: 0.026118 | L_Out: 0.014549 | L_KL: 0.036953 | MSE: 0.000367 | λ: 0.4005 | Temp: 1.922
+  Layer 00 Step [050/200] | Train: 0.028677 | Val: 0.024843 | L_Out: 0.013115 | L_KL: 0.038852 | MSE: 0.000343 | λ: 0.3691 | Temp: 1.902
+  Layer 00 Step [060/200] | Train: 0.028771 | Val: 0.024646 | L_Out: 0.014394 | L_KL: 0.038957 | MSE: 0.000371 | λ: 0.3693 | Temp: 1.883
+  Layer 00 Step [070/200] | Train: 0.027815 | Val: 0.024684 | L_Out: 0.014188 | L_KL: 0.036903 | MSE: 0.000350 | λ: 0.3769 | Temp: 1.865
+  Layer 00 Step [080/200] | Train: 0.028280 | Val: 0.024092 | L_Out: 0.013659 | L_KL: 0.038797 | MSE: 0.000343 | λ: 0.3645 | Temp: 1.846
+  Layer 00 Step [090/200] | Train: 0.021420 | Val: 0.025594 | L_Out: 0.011968 | L_KL: 0.025934 | MSE: 0.000282 | λ: 0.4130 | Temp: 1.828
+  Layer 00 Step [100/200] | Train: 0.029451 | Val: 0.024044 | L_Out: 0.012978 | L_KL: 0.039890 | MSE: 0.000311 | λ: 0.3692 | Temp: 1.810
+  Layer 00 Step [110/200] | Train: 0.026536 | Val: 0.024046 | L_Out: 0.013371 | L_KL: 0.035663 | MSE: 0.000338 | λ: 0.3720 | Temp: 1.792
+  Layer 00 Step [120/200] | Train: 0.029594 | Val: 0.022611 | L_Out: 0.012525 | L_KL: 0.045880 | MSE: 0.000366 | λ: 0.3225 | Temp: 1.774
+  Layer 00 Step [130/200] | Train: 0.026386 | Val: 0.022641 | L_Out: 0.013187 | L_KL: 0.040925 | MSE: 0.000321 | λ: 0.3224 | Temp: 1.756
+  Layer 00 Step [140/200] | Train: 0.021677 | Val: 0.024033 | L_Out: 0.012016 | L_KL: 0.029967 | MSE: 0.000277 | λ: 0.3617 | Temp: 1.739
+  Layer 00 Step [150/200] | Train: 0.024595 | Val: 0.023694 | L_Out: 0.011866 | L_KL: 0.035195 | MSE: 0.000292 | λ: 0.3494 | Temp: 1.721
+  Layer 00 Step [160/200] | Train: 0.025119 | Val: 0.023353 | L_Out: 0.012144 | L_KL: 0.037135 | MSE: 0.000320 | λ: 0.3382 | Temp: 1.704
+  Layer 00 Step [170/200] | Train: 0.023354 | Val: 0.023701 | L_Out: 0.011861 | L_KL: 0.033982 | MSE: 0.000276 | λ: 0.3436 | Temp: 1.687
+  Layer 00 Step [180/200] | Train: 0.027734 | Val: 0.023585 | L_Out: 0.013637 | L_KL: 0.041027 | MSE: 0.000375 | λ: 0.3380 | Temp: 1.670
+  Layer 00 Step [190/200] | Train: 0.025823 | Val: 0.022785 | L_Out: 0.011736 | L_KL: 0.041675 | MSE: 0.000314 | λ: 0.3098 | Temp: 1.654
+  Layer 00 Step [200/200] | Train: 0.024173 | Val: 0.024170 | L_Out: 0.013341 | L_KL: 0.034964 | MSE: 0.000334 | λ: 0.3457 | Temp: 1.637
+  ✓ Layer 00 calibrated (best Val Loss=0.022611)
+
+--- Calibrating layer 01 (pass 1) ---
+  Layer 01: 259 train, 28 val samples
+  Initial λ: 1.5771
+  Layer 01 Step [001/200] | Train: 0.061974 | Val: 0.061563 | L_Out: 0.028134 | L_KL: 0.021456 | MSE: 0.002150 | λ: 1.5771 | Temp: 1.998
+  Layer 01 Step [010/200] | Train: 0.050578 | Val: 0.061606 | L_Out: 0.026637 | L_KL: 0.015180 | MSE: 0.001949 | λ: 1.6660 | Temp: 1.980
+  Layer 01 Step [020/200] | Train: 0.054945 | Val: 0.059716 | L_Out: 0.027209 | L_KL: 0.016648 | MSE: 0.001960 | λ: 1.6502 | Temp: 1.960
+  Layer 01 Step [030/200] | Train: 0.050733 | Val: 0.059272 | L_Out: 0.025774 | L_KL: 0.015125 | MSE: 0.001927 | λ: 1.6771 | Temp: 1.941
+  Layer 01 Step [040/200] | Train: 0.052022 | Val: 0.055638 | L_Out: 0.025435 | L_KL: 0.015854 | MSE: 0.001855 | λ: 1.6407 | Temp: 1.922
+  Layer 01 Step [050/200] | Train: 0.047020 | Val: 0.054369 | L_Out: 0.023386 | L_KL: 0.014405 | MSE: 0.001802 | λ: 1.6321 | Temp: 1.902
+  Layer 01 Step [060/200] | Train: 0.045686 | Val: 0.054075 | L_Out: 0.023163 | L_KL: 0.013800 | MSE: 0.001715 | λ: 1.6553 | Temp: 1.883
+  Layer 01 Step [070/200] | Train: 0.050270 | Val: 0.053007 | L_Out: 0.023935 | L_KL: 0.015909 | MSE: 0.001767 | λ: 1.5799 | Temp: 1.865
+  Layer 01 Step [080/200] | Train: 0.044596 | Val: 0.055042 | L_Out: 0.023161 | L_KL: 0.013567 | MSE: 0.001796 | λ: 1.6435 | Temp: 1.846
+  Layer 01 Step [090/200] | Train: 0.050934 | Val: 0.052414 | L_Out: 0.022763 | L_KL: 0.017141 | MSE: 0.001723 | λ: 1.4858 | Temp: 1.828
+  Layer 01 Step [100/200] | Train: 0.045742 | Val: 0.051670 | L_Out: 0.022895 | L_KL: 0.015377 | MSE: 0.001643 | λ: 1.4873 | Temp: 1.810
+  Layer 01 Step [110/200] | Train: 0.049305 | Val: 0.050899 | L_Out: 0.023075 | L_KL: 0.017636 | MSE: 0.001720 | λ: 1.3979 | Temp: 1.792
+  Layer 01 Step [120/200] | Train: 0.043664 | Val: 0.050922 | L_Out: 0.021812 | L_KL: 0.015632 | MSE: 0.001691 | λ: 1.3966 | Temp: 1.774
+  Layer 01 Step [130/200] | Train: 0.050311 | Val: 0.048722 | L_Out: 0.023486 | L_KL: 0.019207 | MSE: 0.001897 | λ: 1.3097 | Temp: 1.756
+  Layer 01 Step [140/200] | Train: 0.041968 | Val: 0.050099 | L_Out: 0.021789 | L_KL: 0.015408 | MSE: 0.001601 | λ: 1.3619 | Temp: 1.739
+  Layer 01 Step [150/200] | Train: 0.047352 | Val: 0.049879 | L_Out: 0.022395 | L_KL: 0.018325 | MSE: 0.001814 | λ: 1.2920 | Temp: 1.721
+  Layer 01 Step [160/200] | Train: 0.048893 | Val: 0.049126 | L_Out: 0.023451 | L_KL: 0.019691 | MSE: 0.001807 | λ: 1.2415 | Temp: 1.704
+  Layer 01 Step [170/200] | Train: 0.043947 | Val: 0.049784 | L_Out: 0.022608 | L_KL: 0.017189 | MSE: 0.001734 | λ: 1.2784 | Temp: 1.687
+  Layer 01 Step [180/200] | Train: 0.049294 | Val: 0.048649 | L_Out: 0.022776 | L_KL: 0.020744 | MSE: 0.001776 | λ: 1.1882 | Temp: 1.670
+  Layer 01 Step [190/200] | Train: 0.049600 | Val: 0.047432 | L_Out: 0.023134 | L_KL: 0.022275 | MSE: 0.001752 | λ: 1.1134 | Temp: 1.654
+  Layer 01 Step [200/200] | Train: 0.046644 | Val: 0.046895 | L_Out: 0.022684 | L_KL: 0.021521 | MSE: 0.001713 | λ: 1.0837 | Temp: 1.637
+  ✓ Layer 01 calibrated (best Val Loss=0.046895)
+
+--- Calibrating layer 02 (pass 1) ---
+  Layer 02: 259 train, 28 val samples
+  Initial λ: 0.3947
+  Layer 02 Step [001/200] | Train: 0.114400 | Val: 0.109096 | L_Out: 0.050312 | L_KL: 0.162362 | MSE: 0.004457 | λ: 0.3947 | Temp: 1.998
+  Layer 02 Step [010/200] | Train: 0.078600 | Val: 0.120901 | L_Out: 0.050601 | L_KL: 0.070933 | MSE: 0.003690 | λ: 0.5540 | Temp: 1.980
+  Layer 02 Step [020/200] | Train: 0.108236 | Val: 0.107748 | L_Out: 0.045176 | L_KL: 0.113818 | MSE: 0.003858 | λ: 0.4755 | Temp: 1.960
+  Layer 02 Step [030/200] | Train: 0.124865 | Val: 0.097218 | L_Out: 0.044781 | L_KL: 0.168429 | MSE: 0.004165 | λ: 0.3707 | Temp: 1.941
+  Layer 02 Step [040/200] | Train: 0.104630 | Val: 0.085615 | L_Out: 0.043610 | L_KL: 0.164621 | MSE: 0.003952 | λ: 0.3178 | Temp: 1.922
+  Layer 02 Step [050/200] | Train: 0.094385 | Val: 0.090124 | L_Out: 0.045622 | L_KL: 0.153444 | MSE: 0.003800 | λ: 0.3076 | Temp: 1.902
+  Layer 02 Step [060/200] | Train: 0.087752 | Val: 0.083680 | L_Out: 0.043731 | L_KL: 0.143133 | MSE: 0.003662 | λ: 0.3065 | Temp: 1.883
+  Layer 02 Step [070/200] | Train: 0.090576 | Val: 0.078672 | L_Out: 0.041121 | L_KL: 0.161333 | MSE: 0.003687 | λ: 0.2807 | Temp: 1.865
+  Layer 02 Step [080/200] | Train: 0.073545 | Val: 0.077598 | L_Out: 0.042542 | L_KL: 0.110446 | MSE: 0.003529 | λ: 0.3329 | Temp: 1.846
+  Layer 02 Step [090/200] | Train: 0.079400 | Val: 0.079634 | L_Out: 0.042259 | L_KL: 0.111553 | MSE: 0.003728 | λ: 0.3559 | Temp: 1.828
+  Layer 02 Step [100/200] | Train: 0.078114 | Val: 0.081556 | L_Out: 0.039835 | L_KL: 0.107562 | MSE: 0.003585 | λ: 0.3631 | Temp: 1.810
+  Layer 02 Step [110/200] | Train: 0.083272 | Val: 0.082749 | L_Out: 0.041722 | L_KL: 0.114426 | MSE: 0.003696 | λ: 0.3639 | Temp: 1.792
+  Layer 02 Step [120/200] | Train: 0.094544 | Val: 0.077662 | L_Out: 0.040518 | L_KL: 0.148476 | MSE: 0.003614 | λ: 0.3184 | Temp: 1.774
+  Layer 02 Step [130/200] | Train: 0.074179 | Val: 0.077157 | L_Out: 0.039185 | L_KL: 0.109915 | MSE: 0.003577 | λ: 0.3374 | Temp: 1.756
+  Layer 02 Step [140/200] | Train: 0.076903 | Val: 0.078951 | L_Out: 0.040142 | L_KL: 0.108941 | MSE: 0.003399 | λ: 0.3530 | Temp: 1.739
+  Layer 02 Step [150/200] | Train: 0.088337 | Val: 0.082545 | L_Out: 0.041084 | L_KL: 0.133879 | MSE: 0.003433 | λ: 0.3299 | Temp: 1.721
+  Layer 02 Step [160/200] | Train: 0.077844 | Val: 0.083368 | L_Out: 0.040420 | L_KL: 0.113436 | MSE: 0.003306 | λ: 0.3431 | Temp: 1.704
+  Layer 02 Step [170/200] | Train: 0.083987 | Val: 0.077298 | L_Out: 0.039838 | L_KL: 0.128671 | MSE: 0.003682 | λ: 0.3264 | Temp: 1.687
+  Layer 02 Step [180/200] | Train: 0.077107 | Val: 0.075906 | L_Out: 0.037280 | L_KL: 0.122034 | MSE: 0.003449 | λ: 0.3159 | Temp: 1.670
+  Layer 02 Step [190/200] | Train: 0.076862 | Val: 0.081161 | L_Out: 0.039332 | L_KL: 0.118794 | MSE: 0.003290 | λ: 0.3235 | Temp: 1.654
+  Layer 02 Step [200/200] | Train: 0.083689 | Val: 0.076416 | L_Out: 0.040261 | L_KL: 0.134238 | MSE: 0.003586 | λ: 0.3117 | Temp: 1.637
+  ✓ Layer 02 calibrated (best Val Loss=0.075906)
+
+--- Calibrating layer 03 (pass 1) ---
+  Layer 03: 259 train, 28 val samples
+  Initial λ: 0.3195
+  Layer 03 Step [001/200] | Train: 0.187423 | Val: 0.168549 | L_Out: 0.092591 | L_KL: 0.296836 | MSE: 0.006087 | λ: 0.3195 | Temp: 1.998
+  Layer 03 Step [010/200] | Train: 0.169224 | Val: 0.148329 | L_Out: 0.082419 | L_KL: 0.271712 | MSE: 0.005146 | λ: 0.3114 | Temp: 1.980
+  Layer 03 Step [020/200] | Train: 0.140494 | Val: 0.136566 | L_Out: 0.069987 | L_KL: 0.226415 | MSE: 0.004662 | λ: 0.3103 | Temp: 1.960
+  Layer 03 Step [030/200] | Train: 0.112236 | Val: 0.136249 | L_Out: 0.055945 | L_KL: 0.181433 | MSE: 0.003980 | λ: 0.3093 | Temp: 1.941
+  Layer 03 Step [040/200] | Train: 0.142691 | Val: 0.128444 | L_Out: 0.069116 | L_KL: 0.237871 | MSE: 0.005116 | λ: 0.2999 | Temp: 1.922
+  Layer 03 Step [050/200] | Train: 0.113670 | Val: 0.122568 | L_Out: 0.057032 | L_KL: 0.188838 | MSE: 0.003840 | λ: 0.3010 | Temp: 1.902
+  Layer 03 Step [060/200] | Train: 0.111858 | Val: 0.118563 | L_Out: 0.056195 | L_KL: 0.184943 | MSE: 0.003706 | λ: 0.3024 | Temp: 1.883
+  Layer 03 Step [070/200] | Train: 0.106774 | Val: 0.116282 | L_Out: 0.053216 | L_KL: 0.177104 | MSE: 0.003732 | λ: 0.3014 | Temp: 1.865
+  Layer 03 Step [080/200] | Train: 0.117316 | Val: 0.120379 | L_Out: 0.055889 | L_KL: 0.203775 | MSE: 0.003634 | λ: 0.2879 | Temp: 1.846
+  Layer 03 Step [090/200] | Train: 0.107302 | Val: 0.110592 | L_Out: 0.054587 | L_KL: 0.183131 | MSE: 0.003922 | λ: 0.2930 | Temp: 1.828
+  Layer 03 Step [100/200] | Train: 0.100804 | Val: 0.112334 | L_Out: 0.050361 | L_KL: 0.172183 | MSE: 0.003237 | λ: 0.2927 | Temp: 1.810
+  Layer 03 Step [110/200] | Train: 0.102344 | Val: 0.112150 | L_Out: 0.050585 | L_KL: 0.176817 | MSE: 0.003408 | λ: 0.2894 | Temp: 1.792
+  Layer 03 Step [120/200] | Train: 0.106526 | Val: 0.109821 | L_Out: 0.051938 | L_KL: 0.188622 | MSE: 0.003405 | λ: 0.2824 | Temp: 1.774
+  Layer 03 Step [130/200] | Train: 0.103928 | Val: 0.108965 | L_Out: 0.052570 | L_KL: 0.181876 | MSE: 0.003372 | λ: 0.2857 | Temp: 1.756
+  Layer 03 Step [140/200] | Train: 0.110808 | Val: 0.109709 | L_Out: 0.053728 | L_KL: 0.199780 | MSE: 0.003706 | λ: 0.2773 | Temp: 1.739
+  Layer 03 Step [150/200] | Train: 0.101146 | Val: 0.110845 | L_Out: 0.050507 | L_KL: 0.182595 | MSE: 0.003260 | λ: 0.2770 | Temp: 1.721
+  Layer 03 Step [160/200] | Train: 0.108162 | Val: 0.107881 | L_Out: 0.051049 | L_KL: 0.206210 | MSE: 0.003604 | λ: 0.2623 | Temp: 1.704
+  Layer 03 Step [170/200] | Train: 0.105164 | Val: 0.108288 | L_Out: 0.051274 | L_KL: 0.205484 | MSE: 0.003546 | λ: 0.2559 | Temp: 1.687
+  Layer 03 Step [180/200] | Train: 0.094080 | Val: 0.108178 | L_Out: 0.048052 | L_KL: 0.179871 | MSE: 0.003049 | λ: 0.2615 | Temp: 1.670
+  Layer 03 Step [190/200] | Train: 0.084836 | Val: 0.112391 | L_Out: 0.044124 | L_KL: 0.155675 | MSE: 0.002593 | λ: 0.2725 | Temp: 1.654
+  Layer 03 Step [200/200] | Train: 0.108296 | Val: 0.108649 | L_Out: 0.049964 | L_KL: 0.214083 | MSE: 0.003555 | λ: 0.2529 | Temp: 1.637
+  ✓ Layer 03 calibrated (best Val Loss=0.107881)
+
+--- Calibrating layer 04 (pass 1) ---
+  Layer 04: 259 train, 28 val samples
+  Initial λ: 0.3818
+  Layer 04 Step [001/200] | Train: 0.127077 | Val: 0.124088 | L_Out: 0.061724 | L_KL: 0.171165 | MSE: 0.003848 | λ: 0.3818 | Temp: 1.998
+  Layer 04 Step [010/200] | Train: 0.121422 | Val: 0.116024 | L_Out: 0.058067 | L_KL: 0.165933 | MSE: 0.003544 | λ: 0.3659 | Temp: 1.980
+  Layer 04 Step [020/200] | Train: 0.121898 | Val: 0.116614 | L_Out: 0.064034 | L_KL: 0.158152 | MSE: 0.003517 | λ: 0.3854 | Temp: 1.960
+  Layer 04 Step [030/200] | Train: 0.118486 | Val: 0.108850 | L_Out: 0.055444 | L_KL: 0.163582 | MSE: 0.003384 | λ: 0.3622 | Temp: 1.941
+  Layer 04 Step [040/200] | Train: 0.109552 | Val: 0.100674 | L_Out: 0.055138 | L_KL: 0.150248 | MSE: 0.003214 | λ: 0.3646 | Temp: 1.922
+  Layer 04 Step [050/200] | Train: 0.103952 | Val: 0.099239 | L_Out: 0.051316 | L_KL: 0.144377 | MSE: 0.003051 | λ: 0.3600 | Temp: 1.902
+  Layer 04 Step [060/200] | Train: 0.107561 | Val: 0.101401 | L_Out: 0.053335 | L_KL: 0.150627 | MSE: 0.003151 | λ: 0.3570 | Temp: 1.883
+  Layer 04 Step [070/200] | Train: 0.100937 | Val: 0.102432 | L_Out: 0.050985 | L_KL: 0.139903 | MSE: 0.002902 | λ: 0.3607 | Temp: 1.865
+  Layer 04 Step [080/200] | Train: 0.104032 | Val: 0.096699 | L_Out: 0.052779 | L_KL: 0.142080 | MSE: 0.003042 | λ: 0.3661 | Temp: 1.846
+  Layer 04 Step [090/200] | Train: 0.106330 | Val: 0.092967 | L_Out: 0.049485 | L_KL: 0.155271 | MSE: 0.003265 | λ: 0.3424 | Temp: 1.828
+  Layer 04 Step [100/200] | Train: 0.094094 | Val: 0.091430 | L_Out: 0.045668 | L_KL: 0.141428 | MSE: 0.002881 | λ: 0.3327 | Temp: 1.810
+  Layer 04 Step [110/200] | Train: 0.093780 | Val: 0.091504 | L_Out: 0.047905 | L_KL: 0.137905 | MSE: 0.002781 | λ: 0.3400 | Temp: 1.792
+  Layer 04 Step [120/200] | Train: 0.093694 | Val: 0.093761 | L_Out: 0.046262 | L_KL: 0.139500 | MSE: 0.002770 | λ: 0.3358 | Temp: 1.774
+  Layer 04 Step [130/200] | Train: 0.094740 | Val: 0.093212 | L_Out: 0.047566 | L_KL: 0.140474 | MSE: 0.002704 | λ: 0.3372 | Temp: 1.756
+  Layer 04 Step [140/200] | Train: 0.102783 | Val: 0.089257 | L_Out: 0.048424 | L_KL: 0.161201 | MSE: 0.002756 | λ: 0.3188 | Temp: 1.739
+  Layer 04 Step [150/200] | Train: 0.097172 | Val: 0.090298 | L_Out: 0.047862 | L_KL: 0.154673 | MSE: 0.002898 | λ: 0.3141 | Temp: 1.721
+  Layer 04 Step [160/200] | Train: 0.097207 | Val: 0.089356 | L_Out: 0.047239 | L_KL: 0.159073 | MSE: 0.002944 | λ: 0.3055 | Temp: 1.704
+  Layer 04 Step [170/200] | Train: 0.094169 | Val: 0.095153 | L_Out: 0.049221 | L_KL: 0.147111 | MSE: 0.002629 | λ: 0.3201 | Temp: 1.687
+  Layer 04 Step [180/200] | Train: 0.092853 | Val: 0.094304 | L_Out: 0.045154 | L_KL: 0.149033 | MSE: 0.002557 | λ: 0.3115 | Temp: 1.670
+  Layer 04 Step [190/200] | Train: 0.092752 | Val: 0.092108 | L_Out: 0.045923 | L_KL: 0.150323 | MSE: 0.002780 | λ: 0.3085 | Temp: 1.654
+  Layer 04 Step [200/200] | Train: 0.088698 | Val: 0.093563 | L_Out: 0.045265 | L_KL: 0.140784 | MSE: 0.002445 | λ: 0.3150 | Temp: 1.637
+  ✓ Layer 04 calibrated (best Val Loss=0.089257)
+
+--- Calibrating layer 05 (pass 1) ---
+  Layer 05: 259 train, 28 val samples
+  Initial λ: 0.4316
+  Layer 05 Step [001/200] | Train: 0.163001 | Val: 0.157967 | L_Out: 0.082978 | L_KL: 0.185428 | MSE: 0.007526 | λ: 0.4316 | Temp: 1.998
+  Layer 05 Step [010/200] | Train: 0.134563 | Val: 0.140871 | L_Out: 0.067730 | L_KL: 0.154863 | MSE: 0.004952 | λ: 0.4345 | Temp: 1.980
+  Layer 05 Step [020/200] | Train: 0.139799 | Val: 0.134824 | L_Out: 0.072356 | L_KL: 0.155236 | MSE: 0.005493 | λ: 0.4503 | Temp: 1.960
+  Layer 05 Step [030/200] | Train: 0.127049 | Val: 0.126695 | L_Out: 0.061933 | L_KL: 0.144613 | MSE: 0.004591 | λ: 0.4393 | Temp: 1.941
+  Layer 05 Step [040/200] | Train: 0.115007 | Val: 0.119016 | L_Out: 0.058131 | L_KL: 0.129476 | MSE: 0.004580 | λ: 0.4441 | Temp: 1.922
+  Layer 05 Step [050/200] | Train: 0.111396 | Val: 0.119982 | L_Out: 0.055492 | L_KL: 0.125875 | MSE: 0.004183 | λ: 0.4425 | Temp: 1.902
+  Layer 05 Step [060/200] | Train: 0.114085 | Val: 0.119901 | L_Out: 0.056386 | L_KL: 0.130398 | MSE: 0.004327 | λ: 0.4375 | Temp: 1.883
+  Layer 05 Step [070/200] | Train: 0.107981 | Val: 0.115192 | L_Out: 0.052958 | L_KL: 0.125780 | MSE: 0.003960 | λ: 0.4292 | Temp: 1.865
+  Layer 05 Step [080/200] | Train: 0.113305 | Val: 0.109084 | L_Out: 0.052718 | L_KL: 0.141147 | MSE: 0.004738 | λ: 0.4014 | Temp: 1.846
+  Layer 05 Step [090/200] | Train: 0.106337 | Val: 0.111062 | L_Out: 0.054791 | L_KL: 0.128425 | MSE: 0.004081 | λ: 0.4140 | Temp: 1.828
+  Layer 05 Step [100/200] | Train: 0.106456 | Val: 0.108246 | L_Out: 0.051358 | L_KL: 0.133087 | MSE: 0.004819 | λ: 0.3999 | Temp: 1.810
+  Layer 05 Step [110/200] | Train: 0.104926 | Val: 0.105603 | L_Out: 0.050889 | L_KL: 0.135109 | MSE: 0.003820 | λ: 0.3883 | Temp: 1.792
+  Layer 05 Step [120/200] | Train: 0.107397 | Val: 0.108178 | L_Out: 0.054063 | L_KL: 0.137354 | MSE: 0.003991 | λ: 0.3910 | Temp: 1.774
+  Layer 05 Step [130/200] | Train: 0.125121 | Val: 0.106281 | L_Out: 0.061379 | L_KL: 0.163045 | MSE: 0.005089 | λ: 0.3837 | Temp: 1.756
+  Layer 05 Step [140/200] | Train: 0.097135 | Val: 0.105303 | L_Out: 0.047874 | L_KL: 0.128382 | MSE: 0.003494 | λ: 0.3783 | Temp: 1.739
+  Layer 05 Step [150/200] | Train: 0.097564 | Val: 0.107972 | L_Out: 0.048965 | L_KL: 0.128465 | MSE: 0.003665 | λ: 0.3797 | Temp: 1.721
+  Layer 05 Step [160/200] | Train: 0.100327 | Val: 0.108891 | L_Out: 0.050829 | L_KL: 0.130351 | MSE: 0.003617 | λ: 0.3848 | Temp: 1.704
+  Layer 05 Step [170/200] | Train: 0.117052 | Val: 0.107920 | L_Out: 0.056872 | L_KL: 0.156379 | MSE: 0.004740 | λ: 0.3743 | Temp: 1.687
+  Layer 05 Step [180/200] | Train: 0.102047 | Val: 0.105432 | L_Out: 0.047958 | L_KL: 0.144522 | MSE: 0.003901 | λ: 0.3530 | Temp: 1.670
+  Layer 05 Step [190/200] | Train: 0.099416 | Val: 0.107933 | L_Out: 0.050788 | L_KL: 0.137738 | MSE: 0.003526 | λ: 0.3609 | Temp: 1.654
+  Layer 05 Step [200/200] | Train: 0.106513 | Val: 0.107090 | L_Out: 0.051683 | L_KL: 0.151932 | MSE: 0.003850 | λ: 0.3505 | Temp: 1.637
+  ✓ Layer 05 calibrated (best Val Loss=0.105303)
+
+--- Calibrating layer 06 (pass 1) ---
+  Layer 06: 259 train, 28 val samples
+  Initial λ: 0.6915
+  Layer 06 Step [001/200] | Train: 0.208683 | Val: 0.227365 | L_Out: 0.107363 | L_KL: 0.146511 | MSE: 0.005005 | λ: 0.6915 | Temp: 1.998
+  Layer 06 Step [010/200] | Train: 0.192946 | Val: 0.201373 | L_Out: 0.091850 | L_KL: 0.146188 | MSE: 0.005253 | λ: 0.6599 | Temp: 1.980
+  Layer 06 Step [020/200] | Train: 0.185839 | Val: 0.172385 | L_Out: 0.092630 | L_KL: 0.141243 | MSE: 0.004500 | λ: 0.6579 | Temp: 1.960
+  Layer 06 Step [030/200] | Train: 0.174702 | Val: 0.163681 | L_Out: 0.087433 | L_KL: 0.132654 | MSE: 0.003990 | λ: 0.6585 | Temp: 1.941
+  Layer 06 Step [040/200] | Train: 0.172792 | Val: 0.160619 | L_Out: 0.083589 | L_KL: 0.135467 | MSE: 0.004030 | λ: 0.6378 | Temp: 1.922
+  Layer 06 Step [050/200] | Train: 0.178982 | Val: 0.165037 | L_Out: 0.091373 | L_KL: 0.137370 | MSE: 0.004119 | λ: 0.6515 | Temp: 1.902
+  Layer 06 Step [060/200] | Train: 0.159809 | Val: 0.164319 | L_Out: 0.076342 | L_KL: 0.128123 | MSE: 0.004239 | λ: 0.6237 | Temp: 1.883
+  Layer 06 Step [070/200] | Train: 0.145382 | Val: 0.157546 | L_Out: 0.074370 | L_KL: 0.113864 | MSE: 0.003612 | λ: 0.6384 | Temp: 1.865
+  Layer 06 Step [080/200] | Train: 0.156427 | Val: 0.168470 | L_Out: 0.077248 | L_KL: 0.124028 | MSE: 0.004112 | λ: 0.6306 | Temp: 1.846
+  Layer 06 Step [090/200] | Train: 0.168777 | Val: 0.168275 | L_Out: 0.086109 | L_KL: 0.131091 | MSE: 0.003331 | λ: 0.6437 | Temp: 1.828
+  Layer 06 Step [100/200] | Train: 0.184528 | Val: 0.163916 | L_Out: 0.082791 | L_KL: 0.158041 | MSE: 0.004745 | λ: 0.5838 | Temp: 1.810
+  Layer 06 Step [110/200] | Train: 0.179389 | Val: 0.165533 | L_Out: 0.084794 | L_KL: 0.162033 | MSE: 0.004152 | λ: 0.5536 | Temp: 1.792
+  Layer 06 Step [120/200] | Train: 0.148330 | Val: 0.171499 | L_Out: 0.075519 | L_KL: 0.131531 | MSE: 0.004227 | λ: 0.5639 | Temp: 1.774
+  Layer 06 Step [130/200] | Train: 0.161898 | Val: 0.156229 | L_Out: 0.079131 | L_KL: 0.146787 | MSE: 0.004102 | λ: 0.5515 | Temp: 1.756
+  Layer 06 Step [140/200] | Train: 0.173918 | Val: 0.163679 | L_Out: 0.083733 | L_KL: 0.163533 | MSE: 0.004184 | λ: 0.5317 | Temp: 1.739
+  Layer 06 Step [150/200] | Train: 0.160264 | Val: 0.158941 | L_Out: 0.076821 | L_KL: 0.156922 | MSE: 0.004326 | λ: 0.5106 | Temp: 1.721
+  Layer 06 Step [160/200] | Train: 0.161003 | Val: 0.157879 | L_Out: 0.076555 | L_KL: 0.165374 | MSE: 0.004225 | λ: 0.4868 | Temp: 1.704
+  Layer 06 Step [170/200] | Train: 0.155925 | Val: 0.153101 | L_Out: 0.082267 | L_KL: 0.151315 | MSE: 0.003699 | λ: 0.5152 | Temp: 1.687
+  Layer 06 Step [180/200] | Train: 0.177504 | Val: 0.159009 | L_Out: 0.084060 | L_KL: 0.181362 | MSE: 0.003735 | λ: 0.4894 | Temp: 1.670
+  Layer 06 Step [190/200] | Train: 0.156001 | Val: 0.162960 | L_Out: 0.078541 | L_KL: 0.158288 | MSE: 0.003237 | λ: 0.4928 | Temp: 1.654
+  Layer 06 Step [200/200] | Train: 0.145051 | Val: 0.167186 | L_Out: 0.077392 | L_KL: 0.137302 | MSE: 0.003204 | λ: 0.5282 | Temp: 1.637
+  ✓ Layer 06 calibrated (best Val Loss=0.153101)
+
+--- Calibrating layer 07 (pass 1) ---
+  Layer 07: 259 train, 28 val samples
+  Initial λ: 0.6159
+  Layer 07 Step [001/200] | Train: 0.192953 | Val: 0.215249 | L_Out: 0.108547 | L_KL: 0.137034 | MSE: 0.004119 | λ: 0.6159 | Temp: 1.998
+  Layer 07 Step [010/200] | Train: 0.193837 | Val: 0.196786 | L_Out: 0.100948 | L_KL: 0.150806 | MSE: 0.004472 | λ: 0.6427 | Temp: 1.980
+  Layer 07 Step [020/200] | Train: 0.181435 | Val: 0.199401 | L_Out: 0.100013 | L_KL: 0.126693 | MSE: 0.003578 | λ: 0.7160 | Temp: 1.960
+  Layer 07 Step [030/200] | Train: 0.209958 | Val: 0.180525 | L_Out: 0.089410 | L_KL: 0.168353 | MSE: 0.004944 | λ: 0.6236 | Temp: 1.941
+  Layer 07 Step [040/200] | Train: 0.189382 | Val: 0.175275 | L_Out: 0.089296 | L_KL: 0.160507 | MSE: 0.004355 | λ: 0.5899 | Temp: 1.922
+  Layer 07 Step [050/200] | Train: 0.169654 | Val: 0.172603 | L_Out: 0.084260 | L_KL: 0.144748 | MSE: 0.004412 | λ: 0.5860 | Temp: 1.902
+  Layer 07 Step [060/200] | Train: 0.161512 | Val: 0.166766 | L_Out: 0.076593 | L_KL: 0.144904 | MSE: 0.003751 | λ: 0.5573 | Temp: 1.883
+  Layer 07 Step [070/200] | Train: 0.152988 | Val: 0.163330 | L_Out: 0.079208 | L_KL: 0.132385 | MSE: 0.003584 | λ: 0.5778 | Temp: 1.865
+  Layer 07 Step [080/200] | Train: 0.161499 | Val: 0.161181 | L_Out: 0.083211 | L_KL: 0.135492 | MSE: 0.003714 | λ: 0.5960 | Temp: 1.846
+  Layer 07 Step [090/200] | Train: 0.148752 | Val: 0.189159 | L_Out: 0.090016 | L_KL: 0.098553 | MSE: 0.002949 | λ: 0.7547 | Temp: 1.828
+  Layer 07 Step [100/200] | Train: 0.190341 | Val: 0.170299 | L_Out: 0.072168 | L_KL: 0.156587 | MSE: 0.004580 | λ: 0.6078 | Temp: 1.810
+  Layer 07 Step [110/200] | Train: 0.189666 | Val: 0.169869 | L_Out: 0.092065 | L_KL: 0.160586 | MSE: 0.004431 | λ: 0.5905 | Temp: 1.792
+  Layer 07 Step [120/200] | Train: 0.157290 | Val: 0.158155 | L_Out: 0.071431 | L_KL: 0.145389 | MSE: 0.004683 | λ: 0.5409 | Temp: 1.774
+  Layer 07 Step [130/200] | Train: 0.149633 | Val: 0.158872 | L_Out: 0.077925 | L_KL: 0.132565 | MSE: 0.003739 | λ: 0.5644 | Temp: 1.756
+  Layer 07 Step [140/200] | Train: 0.163765 | Val: 0.154800 | L_Out: 0.079249 | L_KL: 0.149751 | MSE: 0.003952 | λ: 0.5468 | Temp: 1.739
+  Layer 07 Step [150/200] | Train: 0.153008 | Val: 0.153182 | L_Out: 0.076209 | L_KL: 0.140454 | MSE: 0.003705 | λ: 0.5447 | Temp: 1.721
+  Layer 07 Step [160/200] | Train: 0.138319 | Val: 0.153331 | L_Out: 0.069603 | L_KL: 0.126156 | MSE: 0.003293 | λ: 0.5482 | Temp: 1.704
+  Layer 07 Step [170/200] | Train: 0.136881 | Val: 0.168369 | L_Out: 0.078223 | L_KL: 0.107000 | MSE: 0.002973 | λ: 0.6396 | Temp: 1.687
+  Layer 07 Step [180/200] | Train: 0.160204 | Val: 0.166377 | L_Out: 0.076869 | L_KL: 0.130286 | MSE: 0.003227 | λ: 0.6148 | Temp: 1.670
+  Layer 07 Step [190/200] | Train: 0.162460 | Val: 0.170270 | L_Out: 0.084099 | L_KL: 0.127454 | MSE: 0.003593 | λ: 0.6373 | Temp: 1.654
+  Layer 07 Step [200/200] | Train: 0.169077 | Val: 0.159341 | L_Out: 0.072234 | L_KL: 0.151951 | MSE: 0.003873 | λ: 0.5564 | Temp: 1.637
+  ✓ Layer 07 calibrated (best Val Loss=0.153182)
+
+--- Calibrating layer 08 (pass 1) ---
+  Layer 08: 259 train, 28 val samples
+  Initial λ: 0.6337
+  Layer 08 Step [001/200] | Train: 0.167635 | Val: 0.173315 | L_Out: 0.076743 | L_KL: 0.143427 | MSE: 0.005873 | λ: 0.6337 | Temp: 1.998
+  Layer 08 Step [010/200] | Train: 0.146567 | Val: 0.161678 | L_Out: 0.073155 | L_KL: 0.115843 | MSE: 0.004993 | λ: 0.6326 | Temp: 1.980
+  Layer 08 Step [020/200] | Train: 0.143849 | Val: 0.151417 | L_Out: 0.067330 | L_KL: 0.120957 | MSE: 0.004937 | λ: 0.5946 | Temp: 1.960
+  Layer 08 Step [030/200] | Train: 0.151713 | Val: 0.137100 | L_Out: 0.069273 | L_KL: 0.138640 | MSE: 0.005606 | λ: 0.5471 | Temp: 1.941
+  Layer 08 Step [040/200] | Train: 0.117603 | Val: 0.136523 | L_Out: 0.060143 | L_KL: 0.105017 | MSE: 0.004058 | λ: 0.5599 | Temp: 1.922
+  Layer 08 Step [050/200] | Train: 0.116894 | Val: 0.129882 | L_Out: 0.055248 | L_KL: 0.110098 | MSE: 0.004020 | λ: 0.5309 | Temp: 1.902
+  Layer 08 Step [060/200] | Train: 0.126886 | Val: 0.123878 | L_Out: 0.060784 | L_KL: 0.124519 | MSE: 0.004505 | λ: 0.5095 | Temp: 1.883
+  Layer 08 Step [070/200] | Train: 0.102286 | Val: 0.117767 | L_Out: 0.051436 | L_KL: 0.099802 | MSE: 0.003791 | λ: 0.5124 | Temp: 1.865
+  Layer 08 Step [080/200] | Train: 0.111072 | Val: 0.113190 | L_Out: 0.052912 | L_KL: 0.113496 | MSE: 0.004026 | λ: 0.4893 | Temp: 1.846
+  Layer 08 Step [090/200] | Train: 0.115380 | Val: 0.109829 | L_Out: 0.053800 | L_KL: 0.125848 | MSE: 0.004741 | λ: 0.4584 | Temp: 1.828
+  Layer 08 Step [100/200] | Train: 0.110884 | Val: 0.112108 | L_Out: 0.057660 | L_KL: 0.116106 | MSE: 0.004268 | λ: 0.4775 | Temp: 1.810
+  Layer 08 Step [110/200] | Train: 0.110137 | Val: 0.113069 | L_Out: 0.054534 | L_KL: 0.116442 | MSE: 0.004187 | λ: 0.4729 | Temp: 1.792
+  Layer 08 Step [120/200] | Train: 0.111607 | Val: 0.110971 | L_Out: 0.052376 | L_KL: 0.125242 | MSE: 0.004058 | λ: 0.4456 | Temp: 1.774
+  Layer 08 Step [130/200] | Train: 0.115397 | Val: 0.107473 | L_Out: 0.053785 | L_KL: 0.138278 | MSE: 0.004735 | λ: 0.4173 | Temp: 1.756
+  Layer 08 Step [140/200] | Train: 0.096999 | Val: 0.119269 | L_Out: 0.056572 | L_KL: 0.096885 | MSE: 0.003457 | λ: 0.5006 | Temp: 1.739
+  Layer 08 Step [150/200] | Train: 0.128317 | Val: 0.111985 | L_Out: 0.056274 | L_KL: 0.143917 | MSE: 0.005229 | λ: 0.4458 | Temp: 1.721
+  Layer 08 Step [160/200] | Train: 0.111483 | Val: 0.110749 | L_Out: 0.053870 | L_KL: 0.129235 | MSE: 0.003983 | λ: 0.4313 | Temp: 1.704
+  Layer 08 Step [170/200] | Train: 0.107481 | Val: 0.111190 | L_Out: 0.053488 | L_KL: 0.125181 | MSE: 0.004138 | λ: 0.4293 | Temp: 1.687
+  Layer 08 Step [180/200] | Train: 0.110061 | Val: 0.113645 | L_Out: 0.056424 | L_KL: 0.124939 | MSE: 0.003909 | λ: 0.4405 | Temp: 1.670
+  Layer 08 Step [190/200] | Train: 0.102660 | Val: 0.115857 | L_Out: 0.052192 | L_KL: 0.114582 | MSE: 0.003749 | λ: 0.4480 | Temp: 1.654
+  Layer 08 Step [200/200] | Train: 0.115923 | Val: 0.120160 | L_Out: 0.061074 | L_KL: 0.122435 | MSE: 0.003989 | λ: 0.4734 | Temp: 1.637
+  ✓ Layer 08 calibrated (best Val Loss=0.107473)
+
+--- Calibrating layer 09 (pass 1) ---
+  Layer 09: 259 train, 28 val samples
+  Initial λ: 0.8867
+  Layer 09 Step [001/200] | Train: 0.155854 | Val: 0.193502 | L_Out: 0.081032 | L_KL: 0.084378 | MSE: 0.004303 | λ: 0.8867 | Temp: 1.998
+  Layer 09 Step [010/200] | Train: 0.189952 | Val: 0.176348 | L_Out: 0.091016 | L_KL: 0.111572 | MSE: 0.004817 | λ: 0.8513 | Temp: 1.980
+  Layer 09 Step [020/200] | Train: 0.166318 | Val: 0.179104 | L_Out: 0.086283 | L_KL: 0.094020 | MSE: 0.004077 | λ: 0.8845 | Temp: 1.960
+  Layer 09 Step [030/200] | Train: 0.189703 | Val: 0.164461 | L_Out: 0.085419 | L_KL: 0.117904 | MSE: 0.005012 | λ: 0.8045 | Temp: 1.941
+  Layer 09 Step [040/200] | Train: 0.174035 | Val: 0.158103 | L_Out: 0.081314 | L_KL: 0.115255 | MSE: 0.005096 | λ: 0.7550 | Temp: 1.922
+  Layer 09 Step [050/200] | Train: 0.165747 | Val: 0.150816 | L_Out: 0.072201 | L_KL: 0.123902 | MSE: 0.005521 | λ: 0.6689 | Temp: 1.902
+  Layer 09 Step [060/200] | Train: 0.143359 | Val: 0.149525 | L_Out: 0.077324 | L_KL: 0.098727 | MSE: 0.004478 | λ: 0.7260 | Temp: 1.883
+  Layer 09 Step [070/200] | Train: 0.151079 | Val: 0.164541 | L_Out: 0.083257 | L_KL: 0.093414 | MSE: 0.003298 | λ: 0.8087 | Temp: 1.865
+  Layer 09 Step [080/200] | Train: 0.167227 | Val: 0.151475 | L_Out: 0.068548 | L_KL: 0.122028 | MSE: 0.004947 | λ: 0.6852 | Temp: 1.846
+  Layer 09 Step [090/200] | Train: 0.144422 | Val: 0.152413 | L_Out: 0.074602 | L_KL: 0.101897 | MSE: 0.003896 | λ: 0.7087 | Temp: 1.828
+  Layer 09 Step [100/200] | Train: 0.137506 | Val: 0.166843 | L_Out: 0.079573 | L_KL: 0.081750 | MSE: 0.002985 | λ: 0.8410 | Temp: 1.810
+  Layer 09 Step [110/200] | Train: 0.179386 | Val: 0.182451 | L_Out: 0.101919 | L_KL: 0.092111 | MSE: 0.003412 | λ: 0.9738 | Temp: 1.792
+  Layer 09 Step [120/200] | Train: 0.156736 | Val: 0.172417 | L_Out: 0.069170 | L_KL: 0.089926 | MSE: 0.003376 | λ: 0.8715 | Temp: 1.774
+  Layer 09 Step [130/200] | Train: 0.181015 | Val: 0.152039 | L_Out: 0.076509 | L_KL: 0.119920 | MSE: 0.004489 | λ: 0.7547 | Temp: 1.756
+  Layer 09 Step [140/200] | Train: 0.160291 | Val: 0.141354 | L_Out: 0.067210 | L_KL: 0.123330 | MSE: 0.004720 | λ: 0.6498 | Temp: 1.739
+  Layer 09 Step [150/200] | Train: 0.155583 | Val: 0.135854 | L_Out: 0.071969 | L_KL: 0.128668 | MSE: 0.004380 | λ: 0.6046 | Temp: 1.721
+  Layer 09 Step [160/200] | Train: 0.134583 | Val: 0.131107 | L_Out: 0.062139 | L_KL: 0.119824 | MSE: 0.004649 | λ: 0.5616 | Temp: 1.704
+  Layer 09 Step [170/200] | Train: 0.140486 | Val: 0.136325 | L_Out: 0.074735 | L_KL: 0.117079 | MSE: 0.004595 | λ: 0.6000 | Temp: 1.687
+  Layer 09 Step [180/200] | Train: 0.140287 | Val: 0.135698 | L_Out: 0.067589 | L_KL: 0.121171 | MSE: 0.004278 | λ: 0.5789 | Temp: 1.670
+  Layer 09 Step [190/200] | Train: 0.137904 | Val: 0.135074 | L_Out: 0.067853 | L_KL: 0.121010 | MSE: 0.004568 | λ: 0.5698 | Temp: 1.654
+  Layer 09 Step [200/200] | Train: 0.144477 | Val: 0.142526 | L_Out: 0.078999 | L_KL: 0.114914 | MSE: 0.003891 | λ: 0.6286 | Temp: 1.637
+  ✓ Layer 09 calibrated (best Val Loss=0.131107)
+
+--- Calibrating layer 10 (pass 1) ---
+  Layer 10: 259 train, 28 val samples
+  Initial λ: 0.7913
+  Layer 10 Step [001/200] | Train: 0.154799 | Val: 0.155837 | L_Out: 0.072163 | L_KL: 0.104425 | MSE: 0.007332 | λ: 0.7913 | Temp: 1.998
+  Layer 10 Step [010/200] | Train: 0.145887 | Val: 0.146913 | L_Out: 0.068652 | L_KL: 0.097599 | MSE: 0.005894 | λ: 0.7474 | Temp: 1.980
+  Layer 10 Step [020/200] | Train: 0.123300 | Val: 0.131559 | L_Out: 0.055646 | L_KL: 0.090521 | MSE: 0.006359 | λ: 0.6811 | Temp: 1.960
+  Layer 10 Step [030/200] | Train: 0.125689 | Val: 0.130070 | L_Out: 0.063564 | L_KL: 0.091219 | MSE: 0.006702 | λ: 0.6889 | Temp: 1.941
+  Layer 10 Step [040/200] | Train: 0.113490 | Val: 0.124731 | L_Out: 0.053070 | L_KL: 0.087700 | MSE: 0.005641 | λ: 0.6470 | Temp: 1.922
+  Layer 10 Step [050/200] | Train: 0.111170 | Val: 0.132297 | L_Out: 0.062162 | L_KL: 0.075742 | MSE: 0.004782 | λ: 0.7339 | Temp: 1.902
+  Layer 10 Step [060/200] | Train: 0.137218 | Val: 0.124762 | L_Out: 0.061267 | L_KL: 0.103494 | MSE: 0.006753 | λ: 0.6629 | Temp: 1.883
+  Layer 10 Step [070/200] | Train: 0.111018 | Val: 0.119429 | L_Out: 0.053506 | L_KL: 0.086755 | MSE: 0.005651 | λ: 0.6398 | Temp: 1.865
+  Layer 10 Step [080/200] | Train: 0.120949 | Val: 0.115157 | L_Out: 0.056325 | L_KL: 0.101001 | MSE: 0.006430 | λ: 0.5988 | Temp: 1.846
+  Layer 10 Step [090/200] | Train: 0.118361 | Val: 0.143615 | L_Out: 0.078267 | L_KL: 0.066963 | MSE: 0.004659 | λ: 0.8838 | Temp: 1.828
+  Layer 10 Step [100/200] | Train: 0.119604 | Val: 0.135954 | L_Out: 0.052362 | L_KL: 0.076084 | MSE: 0.004429 | λ: 0.7860 | Temp: 1.810
+  Layer 10 Step [110/200] | Train: 0.109322 | Val: 0.129304 | L_Out: 0.050886 | L_KL: 0.074346 | MSE: 0.004956 | λ: 0.7352 | Temp: 1.792
+  Layer 10 Step [120/200] | Train: 0.126928 | Val: 0.121467 | L_Out: 0.055721 | L_KL: 0.096850 | MSE: 0.004991 | λ: 0.6553 | Temp: 1.774
+  Layer 10 Step [130/200] | Train: 0.104060 | Val: 0.113796 | L_Out: 0.046507 | L_KL: 0.087830 | MSE: 0.004979 | λ: 0.5924 | Temp: 1.756
+  Layer 10 Step [140/200] | Train: 0.106987 | Val: 0.111227 | L_Out: 0.051439 | L_KL: 0.093769 | MSE: 0.005289 | λ: 0.5705 | Temp: 1.739
+  Layer 10 Step [150/200] | Train: 0.105485 | Val: 0.112371 | L_Out: 0.054042 | L_KL: 0.090174 | MSE: 0.004848 | λ: 0.5849 | Temp: 1.721
+  Layer 10 Step [160/200] | Train: 0.109815 | Val: 0.108640 | L_Out: 0.050566 | L_KL: 0.101297 | MSE: 0.005835 | λ: 0.5420 | Temp: 1.704
+  Layer 10 Step [170/200] | Train: 0.109939 | Val: 0.109149 | L_Out: 0.054618 | L_KL: 0.102060 | MSE: 0.005130 | λ: 0.5386 | Temp: 1.687
+  Layer 10 Step [180/200] | Train: 0.099182 | Val: 0.110405 | L_Out: 0.050285 | L_KL: 0.090787 | MSE: 0.004724 | λ: 0.5462 | Temp: 1.670
+  Layer 10 Step [190/200] | Train: 0.102644 | Val: 0.114814 | L_Out: 0.054124 | L_KL: 0.088826 | MSE: 0.004772 | λ: 0.5778 | Temp: 1.654
+  Layer 10 Step [200/200] | Train: 0.128242 | Val: 0.107762 | L_Out: 0.054835 | L_KL: 0.127050 | MSE: 0.006443 | λ: 0.5047 | Temp: 1.637
+  ✓ Layer 10 calibrated (best Val Loss=0.107762)
+
+--- Calibrating layer 11 (pass 1) ---
+  Layer 11: 259 train, 28 val samples
+  Initial λ: 0.9687
+  Layer 11 Step [001/200] | Train: 0.108757 | Val: 0.109957 | L_Out: 0.050860 | L_KL: 0.059765 | MSE: 0.016337 | λ: 0.9687 | Temp: 1.998
+  Layer 11 Step [010/200] | Train: 0.076963 | Val: 0.108208 | L_Out: 0.039515 | L_KL: 0.038657 | MSE: 0.013564 | λ: 0.9955 | Temp: 1.980
+  Layer 11 Step [020/200] | Train: 0.098405 | Val: 0.103075 | L_Out: 0.046109 | L_KL: 0.052535 | MSE: 0.015984 | λ: 0.9366 | Temp: 1.960
+  Layer 11 Step [030/200] | Train: 0.092448 | Val: 0.098762 | L_Out: 0.044934 | L_KL: 0.050731 | MSE: 0.014463 | λ: 0.9112 | Temp: 1.941
+  Layer 11 Step [040/200] | Train: 0.088820 | Val: 0.094961 | L_Out: 0.041767 | L_KL: 0.051642 | MSE: 0.014537 | λ: 0.8600 | Temp: 1.922
+  Layer 11 Step [050/200] | Train: 0.099433 | Val: 0.091063 | L_Out: 0.047041 | L_KL: 0.060923 | MSE: 0.015560 | λ: 0.8161 | Temp: 1.902
+  Layer 11 Step [060/200] | Train: 0.074128 | Val: 0.092037 | L_Out: 0.038796 | L_KL: 0.043297 | MSE: 0.014002 | λ: 0.8560 | Temp: 1.883
+  Layer 11 Step [070/200] | Train: 0.087202 | Val: 0.088735 | L_Out: 0.041460 | L_KL: 0.053433 | MSE: 0.012774 | λ: 0.8160 | Temp: 1.865
+  Layer 11 Step [080/200] | Train: 0.091162 | Val: 0.087080 | L_Out: 0.044625 | L_KL: 0.057031 | MSE: 0.015467 | λ: 0.7992 | Temp: 1.846
+  Layer 11 Step [090/200] | Train: 0.081887 | Val: 0.085229 | L_Out: 0.038681 | L_KL: 0.054060 | MSE: 0.014229 | λ: 0.7574 | Temp: 1.828
+  Layer 11 Step [100/200] | Train: 0.059440 | Val: 0.087711 | L_Out: 0.031176 | L_KL: 0.037318 | MSE: 0.014350 | λ: 0.7964 | Temp: 1.810
+  Layer 11 Step [110/200] | Train: 0.087052 | Val: 0.088513 | L_Out: 0.044520 | L_KL: 0.053405 | MSE: 0.013612 | λ: 0.8150 | Temp: 1.792
+  Layer 11 Step [120/200] | Train: 0.070892 | Val: 0.090020 | L_Out: 0.036115 | L_KL: 0.042670 | MSE: 0.012296 | λ: 0.8307 | Temp: 1.774
+  Layer 11 Step [130/200] | Train: 0.092979 | Val: 0.087740 | L_Out: 0.043271 | L_KL: 0.059839 | MSE: 0.014075 | λ: 0.7769 | Temp: 1.756
+  Layer 11 Step [140/200] | Train: 0.068642 | Val: 0.089150 | L_Out: 0.034615 | L_KL: 0.043797 | MSE: 0.012726 | λ: 0.7836 | Temp: 1.739
+  Layer 11 Step [150/200] | Train: 0.085261 | Val: 0.085692 | L_Out: 0.038934 | L_KL: 0.059118 | MSE: 0.014110 | λ: 0.7211 | Temp: 1.721
+  Layer 11 Step [160/200] | Train: 0.068488 | Val: 0.088748 | L_Out: 0.036212 | L_KL: 0.044759 | MSE: 0.012568 | λ: 0.7651 | Temp: 1.704
+  Layer 11 Step [170/200] | Train: 0.102976 | Val: 0.083637 | L_Out: 0.044028 | L_KL: 0.077047 | MSE: 0.014794 | λ: 0.6683 | Temp: 1.687
+  Layer 11 Step [180/200] | Train: 0.069564 | Val: 0.084622 | L_Out: 0.035169 | L_KL: 0.051468 | MSE: 0.012124 | λ: 0.6758 | Temp: 1.670
+  Layer 11 Step [190/200] | Train: 0.069857 | Val: 0.079350 | L_Out: 0.029329 | L_KL: 0.059971 | MSE: 0.014835 | λ: 0.5824 | Temp: 1.654
+  Layer 11 Step [200/200] | Train: 0.070502 | Val: 0.083436 | L_Out: 0.038090 | L_KL: 0.055651 | MSE: 0.012044 | λ: 0.6334 | Temp: 1.637
+  ✓ Layer 11 calibrated (best Val Loss=0.079350)
+
+  Pass 1 completed. Evaluating current model on calibration data...
+  ✓ New best PPL: 26.66
+
+  Unfroze all layers for next calibration pass.
+
+======================================================================
+SEQUENTIAL CALIBRATION PASS 2/3
+======================================================================
+
+--- Calibrating layer 00 (pass 2) ---
+  Layer 00: 259 train, 28 val samples
+  Initial λ: 0.5069
+  Layer 00 Step [001/200] | Train: 0.027265 | Val: 0.029667 | L_Out: 0.012791 | L_KL: 0.028557 | MSE: 0.000313 | λ: 0.5069 | Temp: 1.998
+  Layer 00 Step [010/200] | Train: 0.024277 | Val: 0.028912 | L_Out: 0.011792 | L_KL: 0.024632 | MSE: 0.000289 | λ: 0.4928 | Temp: 1.980
+  Layer 00 Step [020/200] | Train: 0.028143 | Val: 0.028118 | L_Out: 0.013773 | L_KL: 0.029160 | MSE: 0.000341 | λ: 0.4826 | Temp: 1.960
+  Layer 00 Step [030/200] | Train: 0.025019 | Val: 0.026652 | L_Out: 0.011569 | L_KL: 0.027872 | MSE: 0.000282 | λ: 0.4488 | Temp: 1.941
+  Layer 00 Step [040/200] | Train: 0.026610 | Val: 0.025095 | L_Out: 0.012058 | L_KL: 0.032421 | MSE: 0.000298 | λ: 0.4104 | Temp: 1.922
+  Layer 00 Step [050/200] | Train: 0.021411 | Val: 0.026073 | L_Out: 0.011562 | L_KL: 0.024001 | MSE: 0.000265 | λ: 0.4460 | Temp: 1.902
+  Layer 00 Step [060/200] | Train: 0.028263 | Val: 0.023536 | L_Out: 0.011369 | L_KL: 0.037877 | MSE: 0.000288 | λ: 0.3731 | Temp: 1.883
+  Layer 00 Step [070/200] | Train: 0.022154 | Val: 0.023576 | L_Out: 0.011171 | L_KL: 0.029439 | MSE: 0.000274 | λ: 0.3763 | Temp: 1.865
+  Layer 00 Step [080/200] | Train: 0.021947 | Val: 0.024017 | L_Out: 0.011422 | L_KL: 0.027972 | MSE: 0.000267 | λ: 0.3923 | Temp: 1.846
+  Layer 00 Step [090/200] | Train: 0.022558 | Val: 0.023504 | L_Out: 0.011072 | L_KL: 0.029278 | MSE: 0.000267 | λ: 0.3852 | Temp: 1.828
+  Layer 00 Step [100/200] | Train: 0.025993 | Val: 0.023180 | L_Out: 0.012584 | L_KL: 0.034808 | MSE: 0.000314 | λ: 0.3734 | Temp: 1.810
+  Layer 00 Step [110/200] | Train: 0.018833 | Val: 0.024937 | L_Out: 0.010586 | L_KL: 0.022085 | MSE: 0.000241 | λ: 0.4264 | Temp: 1.792
+  Layer 00 Step [120/200] | Train: 0.022301 | Val: 0.023541 | L_Out: 0.009931 | L_KL: 0.029013 | MSE: 0.000246 | λ: 0.3843 | Temp: 1.774
+  Layer 00 Step [130/200] | Train: 0.025055 | Val: 0.021788 | L_Out: 0.010390 | L_KL: 0.038157 | MSE: 0.000279 | λ: 0.3283 | Temp: 1.756
+  Layer 00 Step [140/200] | Train: 0.023277 | Val: 0.021423 | L_Out: 0.011210 | L_KL: 0.036754 | MSE: 0.000285 | λ: 0.3167 | Temp: 1.739
+  Layer 00 Step [150/200] | Train: 0.020369 | Val: 0.021990 | L_Out: 0.010498 | L_KL: 0.031173 | MSE: 0.000269 | λ: 0.3267 | Temp: 1.721
+  Layer 00 Step [160/200] | Train: 0.022668 | Val: 0.020950 | L_Out: 0.010196 | L_KL: 0.038176 | MSE: 0.000272 | λ: 0.2969 | Temp: 1.704
+  Layer 00 Step [170/200] | Train: 0.019811 | Val: 0.021073 | L_Out: 0.009976 | L_KL: 0.033125 | MSE: 0.000263 | λ: 0.2990 | Temp: 1.687
+  Layer 00 Step [180/200] | Train: 0.019836 | Val: 0.021417 | L_Out: 0.010148 | L_KL: 0.032399 | MSE: 0.000253 | λ: 0.3061 | Temp: 1.670
+  Layer 00 Step [190/200] | Train: 0.020241 | Val: 0.022786 | L_Out: 0.011176 | L_KL: 0.029612 | MSE: 0.000272 | λ: 0.3418 | Temp: 1.654
+  Layer 00 Step [200/200] | Train: 0.022301 | Val: 0.022763 | L_Out: 0.010982 | L_KL: 0.033117 | MSE: 0.000274 | λ: 0.3367 | Temp: 1.637
+  ✓ Layer 00 calibrated (best Val Loss=0.020950)
+
+--- Calibrating layer 01 (pass 2) ---
+  Layer 01: 259 train, 28 val samples
+  Initial λ: 1.9331
+  Layer 01 Step [001/200] | Train: 0.045621 | Val: 0.050120 | L_Out: 0.022192 | L_KL: 0.012120 | MSE: 0.001716 | λ: 1.9331 | Temp: 1.998
+  Layer 01 Step [010/200] | Train: 0.043579 | Val: 0.047364 | L_Out: 0.021147 | L_KL: 0.011604 | MSE: 0.001595 | λ: 1.8777 | Temp: 1.980
+  Layer 01 Step [020/200] | Train: 0.043832 | Val: 0.044783 | L_Out: 0.020873 | L_KL: 0.012227 | MSE: 0.001580 | λ: 1.7924 | Temp: 1.960
+  Layer 01 Step [030/200] | Train: 0.044308 | Val: 0.042906 | L_Out: 0.020579 | L_KL: 0.013239 | MSE: 0.001508 | λ: 1.6735 | Temp: 1.941
+  Layer 01 Step [040/200] | Train: 0.048815 | Val: 0.041037 | L_Out: 0.022261 | L_KL: 0.015868 | MSE: 0.001741 | λ: 1.5382 | Temp: 1.922
+  Layer 01 Step [050/200] | Train: 0.040161 | Val: 0.041756 | L_Out: 0.020615 | L_KL: 0.012707 | MSE: 0.001610 | λ: 1.5802 | Temp: 1.902
+  Layer 01 Step [060/200] | Train: 0.042816 | Val: 0.040090 | L_Out: 0.020498 | L_KL: 0.014123 | MSE: 0.001514 | λ: 1.5158 | Temp: 1.883
+  Layer 01 Step [070/200] | Train: 0.036547 | Val: 0.040943 | L_Out: 0.019221 | L_KL: 0.011430 | MSE: 0.001495 | λ: 1.5988 | Temp: 1.865
+  Layer 01 Step [080/200] | Train: 0.040455 | Val: 0.039410 | L_Out: 0.019246 | L_KL: 0.013266 | MSE: 0.001441 | λ: 1.5248 | Temp: 1.846
+  Layer 01 Step [090/200] | Train: 0.038523 | Val: 0.039709 | L_Out: 0.019484 | L_KL: 0.012486 | MSE: 0.001438 | λ: 1.5426 | Temp: 1.828
+  Layer 01 Step [100/200] | Train: 0.033484 | Val: 0.040062 | L_Out: 0.017423 | L_KL: 0.010412 | MSE: 0.001259 | λ: 1.6080 | Temp: 1.810
+  Layer 01 Step [110/200] | Train: 0.046465 | Val: 0.037356 | L_Out: 0.019583 | L_KL: 0.016718 | MSE: 0.001484 | λ: 1.3897 | Temp: 1.792
+  Layer 01 Step [120/200] | Train: 0.040713 | Val: 0.037199 | L_Out: 0.019107 | L_KL: 0.015548 | MSE: 0.001425 | λ: 1.3093 | Temp: 1.774
+  Layer 01 Step [130/200] | Train: 0.033643 | Val: 0.040054 | L_Out: 0.018946 | L_KL: 0.011225 | MSE: 0.001383 | λ: 1.4986 | Temp: 1.756
+  Layer 01 Step [140/200] | Train: 0.047546 | Val: 0.037675 | L_Out: 0.020374 | L_KL: 0.018132 | MSE: 0.001548 | λ: 1.3111 | Temp: 1.739
+  Layer 01 Step [150/200] | Train: 0.042989 | Val: 0.036125 | L_Out: 0.019747 | L_KL: 0.017727 | MSE: 0.001564 | λ: 1.2125 | Temp: 1.721
+  Layer 01 Step [160/200] | Train: 0.034592 | Val: 0.036855 | L_Out: 0.017343 | L_KL: 0.014226 | MSE: 0.001372 | λ: 1.2158 | Temp: 1.704
+  Layer 01 Step [170/200] | Train: 0.037720 | Val: 0.037090 | L_Out: 0.018825 | L_KL: 0.015540 | MSE: 0.001431 | λ: 1.2136 | Temp: 1.687
+  Layer 01 Step [180/200] | Train: 0.033514 | Val: 0.038474 | L_Out: 0.017416 | L_KL: 0.013264 | MSE: 0.001283 | λ: 1.2633 | Temp: 1.670
+  Layer 01 Step [190/200] | Train: 0.046721 | Val: 0.036164 | L_Out: 0.020090 | L_KL: 0.021080 | MSE: 0.001535 | λ: 1.1082 | Temp: 1.654
+  Layer 01 Step [200/200] | Train: 0.034589 | Val: 0.037406 | L_Out: 0.017898 | L_KL: 0.015061 | MSE: 0.001301 | λ: 1.1483 | Temp: 1.637
+  ✓ Layer 01 calibrated (best Val Loss=0.036125)
+
+--- Calibrating layer 02 (pass 2) ---
+  Layer 02: 259 train, 28 val samples
+  Initial λ: 0.4536
+  Layer 02 Step [001/200] | Train: 0.079693 | Val: 0.090668 | L_Out: 0.038846 | L_KL: 0.090045 | MSE: 0.003538 | λ: 0.4536 | Temp: 1.998
+  Layer 02 Step [010/200] | Train: 0.078125 | Val: 0.079410 | L_Out: 0.040775 | L_KL: 0.082336 | MSE: 0.003335 | λ: 0.4744 | Temp: 1.980
+  Layer 02 Step [020/200] | Train: 0.091287 | Val: 0.081683 | L_Out: 0.039585 | L_KL: 0.108977 | MSE: 0.003603 | λ: 0.4188 | Temp: 1.960
+  Layer 02 Step [030/200] | Train: 0.086574 | Val: 0.080329 | L_Out: 0.037469 | L_KL: 0.117242 | MSE: 0.003591 | λ: 0.3692 | Temp: 1.941
+  Layer 02 Step [040/200] | Train: 0.074901 | Val: 0.078714 | L_Out: 0.039619 | L_KL: 0.095559 | MSE: 0.003256 | λ: 0.3919 | Temp: 1.922
+  Layer 02 Step [050/200] | Train: 0.089462 | Val: 0.079996 | L_Out: 0.040795 | L_KL: 0.124181 | MSE: 0.003507 | λ: 0.3602 | Temp: 1.902
+  Layer 02 Step [060/200] | Train: 0.068763 | Val: 0.076560 | L_Out: 0.038894 | L_KL: 0.082919 | MSE: 0.003324 | λ: 0.4146 | Temp: 1.883
+  Layer 02 Step [070/200] | Train: 0.075318 | Val: 0.076113 | L_Out: 0.037781 | L_KL: 0.090531 | MSE: 0.003306 | λ: 0.4160 | Temp: 1.865
+  Layer 02 Step [080/200] | Train: 0.070828 | Val: 0.076827 | L_Out: 0.035654 | L_KL: 0.084558 | MSE: 0.002749 | λ: 0.4188 | Temp: 1.846
+  Layer 02 Step [090/200] | Train: 0.073537 | Val: 0.071564 | L_Out: 0.036056 | L_KL: 0.089491 | MSE: 0.003222 | λ: 0.4109 | Temp: 1.828
+  Layer 02 Step [100/200] | Train: 0.078592 | Val: 0.066164 | L_Out: 0.036631 | L_KL: 0.102130 | MSE: 0.003321 | λ: 0.3848 | Temp: 1.810
+  Layer 02 Step [110/200] | Train: 0.054881 | Val: 0.075213 | L_Out: 0.032718 | L_KL: 0.057603 | MSE: 0.002635 | λ: 0.4764 | Temp: 1.792
+  Layer 02 Step [120/200] | Train: 0.076396 | Val: 0.069412 | L_Out: 0.033523 | L_KL: 0.089998 | MSE: 0.003001 | λ: 0.4244 | Temp: 1.774
+  Layer 02 Step [130/200] | Train: 0.073370 | Val: 0.069371 | L_Out: 0.034580 | L_KL: 0.091393 | MSE: 0.003057 | λ: 0.4014 | Temp: 1.756
+  Layer 02 Step [140/200] | Train: 0.065311 | Val: 0.071700 | L_Out: 0.034602 | L_KL: 0.076505 | MSE: 0.002986 | λ: 0.4268 | Temp: 1.739
+  Layer 02 Step [150/200] | Train: 0.080644 | Val: 0.067409 | L_Out: 0.034469 | L_KL: 0.108178 | MSE: 0.003180 | λ: 0.3727 | Temp: 1.721
+  Layer 02 Step [160/200] | Train: 0.065174 | Val: 0.068498 | L_Out: 0.033117 | L_KL: 0.086004 | MSE: 0.002856 | λ: 0.3789 | Temp: 1.704
+  Layer 02 Step [170/200] | Train: 0.064102 | Val: 0.068058 | L_Out: 0.032641 | L_KL: 0.083032 | MSE: 0.002973 | λ: 0.3860 | Temp: 1.687
+  Layer 02 Step [180/200] | Train: 0.075109 | Val: 0.065945 | L_Out: 0.033627 | L_KL: 0.107464 | MSE: 0.003080 | λ: 0.3495 | Temp: 1.670
+  Layer 02 Step [190/200] | Train: 0.075493 | Val: 0.062956 | L_Out: 0.033856 | L_KL: 0.119148 | MSE: 0.003109 | λ: 0.3168 | Temp: 1.654
+  Layer 02 Step [200/200] | Train: 0.060159 | Val: 0.067386 | L_Out: 0.033725 | L_KL: 0.083440 | MSE: 0.002971 | λ: 0.3605 | Temp: 1.637
+  ✓ Layer 02 calibrated (best Val Loss=0.062956)
+
+--- Calibrating layer 03 (pass 2) ---
+  Layer 03: 259 train, 28 val samples
+  Initial λ: 0.3410
+  Layer 03 Step [001/200] | Train: 0.104306 | Val: 0.103055 | L_Out: 0.051514 | L_KL: 0.154831 | MSE: 0.003553 | λ: 0.3410 | Temp: 1.998
+  Layer 03 Step [010/200] | Train: 0.090217 | Val: 0.101794 | L_Out: 0.045995 | L_KL: 0.129696 | MSE: 0.002758 | λ: 0.3478 | Temp: 1.980
+  Layer 03 Step [020/200] | Train: 0.103713 | Val: 0.104790 | L_Out: 0.050411 | L_KL: 0.153254 | MSE: 0.003518 | λ: 0.3384 | Temp: 1.960
+  Layer 03 Step [030/200] | Train: 0.108839 | Val: 0.104409 | L_Out: 0.052358 | L_KL: 0.166919 | MSE: 0.003566 | λ: 0.3260 | Temp: 1.941
+  Layer 03 Step [040/200] | Train: 0.115403 | Val: 0.109760 | L_Out: 0.054669 | L_KL: 0.186288 | MSE: 0.003695 | λ: 0.3097 | Temp: 1.922
+  Layer 03 Step [050/200] | Train: 0.099140 | Val: 0.100856 | L_Out: 0.049221 | L_KL: 0.161160 | MSE: 0.003569 | λ: 0.3076 | Temp: 1.902
+  Layer 03 Step [060/200] | Train: 0.096314 | Val: 0.095912 | L_Out: 0.047674 | L_KL: 0.158139 | MSE: 0.003122 | λ: 0.3045 | Temp: 1.883
+  Layer 03 Step [070/200] | Train: 0.094386 | Val: 0.093481 | L_Out: 0.045693 | L_KL: 0.159898 | MSE: 0.003260 | λ: 0.2951 | Temp: 1.865
+  Layer 03 Step [080/200] | Train: 0.089606 | Val: 0.105290 | L_Out: 0.045121 | L_KL: 0.150725 | MSE: 0.002792 | λ: 0.2973 | Temp: 1.846
+  Layer 03 Step [090/200] | Train: 0.100670 | Val: 0.102097 | L_Out: 0.047809 | L_KL: 0.177832 | MSE: 0.003671 | λ: 0.2830 | Temp: 1.828
+  Layer 03 Step [100/200] | Train: 0.097426 | Val: 0.101258 | L_Out: 0.047154 | L_KL: 0.177608 | MSE: 0.003226 | λ: 0.2743 | Temp: 1.810
+  Layer 03 Step [110/200] | Train: 0.100852 | Val: 0.091752 | L_Out: 0.049037 | L_KL: 0.188917 | MSE: 0.003620 | λ: 0.2669 | Temp: 1.792
+  Layer 03 Step [120/200] | Train: 0.096020 | Val: 0.091783 | L_Out: 0.047110 | L_KL: 0.183239 | MSE: 0.003450 | λ: 0.2620 | Temp: 1.774
+  Layer 03 Step [130/200] | Train: 0.096692 | Val: 0.094084 | L_Out: 0.046358 | L_KL: 0.192108 | MSE: 0.003047 | λ: 0.2517 | Temp: 1.756
+  Layer 03 Step [140/200] | Train: 0.093768 | Val: 0.093855 | L_Out: 0.046780 | L_KL: 0.186716 | MSE: 0.003177 | λ: 0.2511 | Temp: 1.739
+  Layer 03 Step [150/200] | Train: 0.090526 | Val: 0.092756 | L_Out: 0.044394 | L_KL: 0.183718 | MSE: 0.002865 | λ: 0.2464 | Temp: 1.721
+  Layer 03 Step [160/200] | Train: 0.099276 | Val: 0.090260 | L_Out: 0.047228 | L_KL: 0.211259 | MSE: 0.003275 | λ: 0.2350 | Temp: 1.704
+  Layer 03 Step [170/200] | Train: 0.099311 | Val: 0.091145 | L_Out: 0.049154 | L_KL: 0.213465 | MSE: 0.003422 | λ: 0.2326 | Temp: 1.687
+  Layer 03 Step [180/200] | Train: 0.091428 | Val: 0.092023 | L_Out: 0.046463 | L_KL: 0.193301 | MSE: 0.003149 | λ: 0.2365 | Temp: 1.670
+  Layer 03 Step [190/200] | Train: 0.090299 | Val: 0.092006 | L_Out: 0.044790 | L_KL: 0.192434 | MSE: 0.003181 | λ: 0.2346 | Temp: 1.654
+  Layer 03 Step [200/200] | Train: 0.089121 | Val: 0.093776 | L_Out: 0.045496 | L_KL: 0.185939 | MSE: 0.002791 | λ: 0.2397 | Temp: 1.637
+  ✓ Layer 03 calibrated (best Val Loss=0.090260)
+
+--- Calibrating layer 04 (pass 2) ---
+  Layer 04: 259 train, 28 val samples
+  Initial λ: 0.4043
+  Layer 04 Step [001/200] | Train: 0.087759 | Val: 0.090828 | L_Out: 0.043576 | L_KL: 0.109277 | MSE: 0.002660 | λ: 0.4043 | Temp: 1.998
+  Layer 04 Step [010/200] | Train: 0.099575 | Val: 0.085498 | L_Out: 0.047878 | L_KL: 0.127861 | MSE: 0.003140 | λ: 0.3894 | Temp: 1.980
+  Layer 04 Step [020/200] | Train: 0.093481 | Val: 0.085501 | L_Out: 0.046498 | L_KL: 0.120659 | MSE: 0.002909 | λ: 0.3874 | Temp: 1.960
+  Layer 04 Step [030/200] | Train: 0.096362 | Val: 0.082644 | L_Out: 0.046357 | L_KL: 0.129086 | MSE: 0.003008 | λ: 0.3732 | Temp: 1.941
+  Layer 04 Step [040/200] | Train: 0.090717 | Val: 0.087453 | L_Out: 0.046470 | L_KL: 0.118546 | MSE: 0.003029 | λ: 0.3826 | Temp: 1.922
+  Layer 04 Step [050/200] | Train: 0.084593 | Val: 0.080606 | L_Out: 0.041102 | L_KL: 0.113668 | MSE: 0.002766 | λ: 0.3721 | Temp: 1.902
+  Layer 04 Step [060/200] | Train: 0.086410 | Val: 0.081401 | L_Out: 0.042387 | L_KL: 0.118306 | MSE: 0.002658 | λ: 0.3652 | Temp: 1.883
+  Layer 04 Step [070/200] | Train: 0.094530 | Val: 0.082261 | L_Out: 0.046896 | L_KL: 0.130434 | MSE: 0.003120 | λ: 0.3624 | Temp: 1.865
+  Layer 04 Step [080/200] | Train: 0.079245 | Val: 0.081483 | L_Out: 0.040326 | L_KL: 0.107403 | MSE: 0.002306 | λ: 0.3689 | Temp: 1.846
+  Layer 04 Step [090/200] | Train: 0.084851 | Val: 0.079571 | L_Out: 0.041421 | L_KL: 0.117725 | MSE: 0.002432 | λ: 0.3604 | Temp: 1.828
+  Layer 04 Step [100/200] | Train: 0.083355 | Val: 0.076467 | L_Out: 0.039774 | L_KL: 0.120931 | MSE: 0.002346 | λ: 0.3446 | Temp: 1.810
+  Layer 04 Step [110/200] | Train: 0.086043 | Val: 0.076323 | L_Out: 0.042518 | L_KL: 0.126291 | MSE: 0.002746 | λ: 0.3407 | Temp: 1.792
+  Layer 04 Step [120/200] | Train: 0.080715 | Val: 0.078033 | L_Out: 0.041660 | L_KL: 0.114647 | MSE: 0.002598 | λ: 0.3520 | Temp: 1.774
+  Layer 04 Step [130/200] | Train: 0.083983 | Val: 0.076870 | L_Out: 0.040944 | L_KL: 0.122268 | MSE: 0.002312 | λ: 0.3434 | Temp: 1.756
+  Layer 04 Step [140/200] | Train: 0.079682 | Val: 0.077409 | L_Out: 0.040383 | L_KL: 0.114427 | MSE: 0.002280 | λ: 0.3482 | Temp: 1.739
+  Layer 04 Step [150/200] | Train: 0.079631 | Val: 0.077549 | L_Out: 0.039278 | L_KL: 0.115898 | MSE: 0.002267 | λ: 0.3435 | Temp: 1.721
+  Layer 04 Step [160/200] | Train: 0.080454 | Val: 0.079725 | L_Out: 0.040620 | L_KL: 0.115951 | MSE: 0.002248 | λ: 0.3469 | Temp: 1.704
+  Layer 04 Step [170/200] | Train: 0.088950 | Val: 0.077244 | L_Out: 0.041387 | L_KL: 0.137096 | MSE: 0.002519 | λ: 0.3244 | Temp: 1.687
+  Layer 04 Step [180/200] | Train: 0.090716 | Val: 0.076940 | L_Out: 0.044008 | L_KL: 0.143979 | MSE: 0.002663 | λ: 0.3150 | Temp: 1.670
+  Layer 04 Step [190/200] | Train: 0.086890 | Val: 0.079993 | L_Out: 0.046146 | L_KL: 0.129334 | MSE: 0.002634 | λ: 0.3359 | Temp: 1.654
+  Layer 04 Step [200/200] | Train: 0.090048 | Val: 0.077779 | L_Out: 0.041686 | L_KL: 0.143971 | MSE: 0.002543 | λ: 0.3127 | Temp: 1.637
+  ✓ Layer 04 calibrated (best Val Loss=0.076323)
+
+--- Calibrating layer 05 (pass 2) ---
+  Layer 05: 259 train, 28 val samples
+  Initial λ: 0.5220
+  Layer 05 Step [001/200] | Train: 0.093290 | Val: 0.116649 | L_Out: 0.046735 | L_KL: 0.089192 | MSE: 0.003312 | λ: 0.5220 | Temp: 1.998
+  Layer 05 Step [010/200] | Train: 0.114039 | Val: 0.108943 | L_Out: 0.051565 | L_KL: 0.119690 | MSE: 0.004833 | λ: 0.4764 | Temp: 1.980
+  Layer 05 Step [020/200] | Train: 0.116951 | Val: 0.110520 | L_Out: 0.056417 | L_KL: 0.127069 | MSE: 0.005205 | λ: 0.4602 | Temp: 1.960
+  Layer 05 Step [030/200] | Train: 0.098465 | Val: 0.106591 | L_Out: 0.048314 | L_KL: 0.108979 | MSE: 0.004457 | λ: 0.4518 | Temp: 1.941
+  Layer 05 Step [040/200] | Train: 0.098597 | Val: 0.106750 | L_Out: 0.050317 | L_KL: 0.106872 | MSE: 0.003580 | λ: 0.4613 | Temp: 1.922
+  Layer 05 Step [050/200] | Train: 0.093560 | Val: 0.110352 | L_Out: 0.047699 | L_KL: 0.099418 | MSE: 0.003394 | λ: 0.4705 | Temp: 1.902
+  Layer 05 Step [060/200] | Train: 0.101387 | Val: 0.107208 | L_Out: 0.048963 | L_KL: 0.111412 | MSE: 0.004098 | λ: 0.4550 | Temp: 1.883
+  Layer 05 Step [070/200] | Train: 0.107078 | Val: 0.105914 | L_Out: 0.052302 | L_KL: 0.120386 | MSE: 0.004712 | λ: 0.4447 | Temp: 1.865
+  Layer 05 Step [080/200] | Train: 0.094171 | Val: 0.109449 | L_Out: 0.048744 | L_KL: 0.102146 | MSE: 0.003377 | λ: 0.4610 | Temp: 1.846
+  Layer 05 Step [090/200] | Train: 0.101764 | Val: 0.102744 | L_Out: 0.047059 | L_KL: 0.118677 | MSE: 0.003946 | λ: 0.4287 | Temp: 1.828
+  Layer 05 Step [100/200] | Train: 0.110307 | Val: 0.100884 | L_Out: 0.053512 | L_KL: 0.132468 | MSE: 0.003936 | λ: 0.4164 | Temp: 1.810
+  Layer 05 Step [110/200] | Train: 0.094086 | Val: 0.103260 | L_Out: 0.048718 | L_KL: 0.108965 | MSE: 0.003663 | λ: 0.4317 | Temp: 1.792
+  Layer 05 Step [120/200] | Train: 0.102739 | Val: 0.100397 | L_Out: 0.048894 | L_KL: 0.124720 | MSE: 0.004100 | λ: 0.4119 | Temp: 1.774
+  Layer 05 Step [130/200] | Train: 0.090431 | Val: 0.099941 | L_Out: 0.043453 | L_KL: 0.114059 | MSE: 0.003224 | λ: 0.3964 | Temp: 1.756
+  Layer 05 Step [140/200] | Train: 0.092923 | Val: 0.098390 | L_Out: 0.044308 | L_KL: 0.122634 | MSE: 0.003848 | λ: 0.3789 | Temp: 1.739
+  Layer 05 Step [150/200] | Train: 0.099187 | Val: 0.095966 | L_Out: 0.047657 | L_KL: 0.136013 | MSE: 0.003703 | λ: 0.3646 | Temp: 1.721
+  Layer 05 Step [160/200] | Train: 0.085260 | Val: 0.098494 | L_Out: 0.043886 | L_KL: 0.113470 | MSE: 0.003150 | λ: 0.3757 | Temp: 1.704
+  Layer 05 Step [170/200] | Train: 0.102675 | Val: 0.092901 | L_Out: 0.045544 | L_KL: 0.152070 | MSE: 0.005157 | λ: 0.3376 | Temp: 1.687
+  Layer 05 Step [180/200] | Train: 0.085922 | Val: 0.095397 | L_Out: 0.044009 | L_KL: 0.124153 | MSE: 0.003368 | λ: 0.3460 | Temp: 1.670
+  Layer 05 Step [190/200] | Train: 0.103010 | Val: 0.093968 | L_Out: 0.049837 | L_KL: 0.153665 | MSE: 0.003988 | λ: 0.3352 | Temp: 1.654
+  Layer 05 Step [200/200] | Train: 0.096208 | Val: 0.095189 | L_Out: 0.048727 | L_KL: 0.141663 | MSE: 0.003795 | λ: 0.3396 | Temp: 1.637
+  ✓ Layer 05 calibrated (best Val Loss=0.092901)
+
+--- Calibrating layer 06 (pass 2) ---
+  Layer 06: 259 train, 28 val samples
+  Initial λ: 0.6514
+  Layer 06 Step [001/200] | Train: 0.146980 | Val: 0.173003 | L_Out: 0.074253 | L_KL: 0.111653 | MSE: 0.003796 | λ: 0.6514 | Temp: 1.998
+  Layer 06 Step [010/200] | Train: 0.130846 | Val: 0.147993 | L_Out: 0.064282 | L_KL: 0.102192 | MSE: 0.003705 | λ: 0.6402 | Temp: 1.980
+  Layer 06 Step [020/200] | Train: 0.140084 | Val: 0.148418 | L_Out: 0.071654 | L_KL: 0.106888 | MSE: 0.003644 | λ: 0.6553 | Temp: 1.960
+  Layer 06 Step [030/200] | Train: 0.151135 | Val: 0.145152 | L_Out: 0.071975 | L_KL: 0.120803 | MSE: 0.004180 | λ: 0.6255 | Temp: 1.941
+  Layer 06 Step [040/200] | Train: 0.126239 | Val: 0.143443 | L_Out: 0.065327 | L_KL: 0.097374 | MSE: 0.003112 | λ: 0.6482 | Temp: 1.922
+  Layer 06 Step [050/200] | Train: 0.135674 | Val: 0.150261 | L_Out: 0.068155 | L_KL: 0.104160 | MSE: 0.003554 | λ: 0.6513 | Temp: 1.902
+  Layer 06 Step [060/200] | Train: 0.162684 | Val: 0.146875 | L_Out: 0.074294 | L_KL: 0.135719 | MSE: 0.003901 | λ: 0.5993 | Temp: 1.883
+  Layer 06 Step [070/200] | Train: 0.128357 | Val: 0.145825 | L_Out: 0.068782 | L_KL: 0.099401 | MSE: 0.002841 | λ: 0.6457 | Temp: 1.865
+  Layer 06 Step [080/200] | Train: 0.136802 | Val: 0.144045 | L_Out: 0.068275 | L_KL: 0.106136 | MSE: 0.002892 | λ: 0.6445 | Temp: 1.846
+  Layer 06 Step [090/200] | Train: 0.128006 | Val: 0.141511 | L_Out: 0.062844 | L_KL: 0.101111 | MSE: 0.002805 | λ: 0.6330 | Temp: 1.828
+  Layer 06 Step [100/200] | Train: 0.122779 | Val: 0.146665 | L_Out: 0.064923 | L_KL: 0.091400 | MSE: 0.002413 | λ: 0.6717 | Temp: 1.810
+  Layer 06 Step [110/200] | Train: 0.152073 | Val: 0.160591 | L_Out: 0.081949 | L_KL: 0.104405 | MSE: 0.003329 | λ: 0.7283 | Temp: 1.792
+  Layer 06 Step [120/200] | Train: 0.152323 | Val: 0.148419 | L_Out: 0.068138 | L_KL: 0.115593 | MSE: 0.003023 | λ: 0.6589 | Temp: 1.774
+  Layer 06 Step [130/200] | Train: 0.115749 | Val: 0.146797 | L_Out: 0.056014 | L_KL: 0.090662 | MSE: 0.002394 | λ: 0.6384 | Temp: 1.756
+  Layer 06 Step [140/200] | Train: 0.157141 | Val: 0.136138 | L_Out: 0.066730 | L_KL: 0.141632 | MSE: 0.004197 | λ: 0.5547 | Temp: 1.739
+  Layer 06 Step [150/200] | Train: 0.129751 | Val: 0.133554 | L_Out: 0.062578 | L_KL: 0.121087 | MSE: 0.003151 | λ: 0.5358 | Temp: 1.721
+  Layer 06 Step [160/200] | Train: 0.094890 | Val: 0.147656 | L_Out: 0.054257 | L_KL: 0.075839 | MSE: 0.002098 | λ: 0.6256 | Temp: 1.704
+  Layer 06 Step [170/200] | Train: 0.149091 | Val: 0.138349 | L_Out: 0.065620 | L_KL: 0.133425 | MSE: 0.003000 | λ: 0.5587 | Temp: 1.687
+  Layer 06 Step [180/200] | Train: 0.137822 | Val: 0.131972 | L_Out: 0.060516 | L_KL: 0.138365 | MSE: 0.003828 | λ: 0.4980 | Temp: 1.670
+  Layer 06 Step [190/200] | Train: 0.119838 | Val: 0.132620 | L_Out: 0.059412 | L_KL: 0.121327 | MSE: 0.002965 | λ: 0.4939 | Temp: 1.654
+  Layer 06 Step [200/200] | Train: 0.126960 | Val: 0.135406 | L_Out: 0.065029 | L_KL: 0.125401 | MSE: 0.002929 | λ: 0.5062 | Temp: 1.637
+  ✓ Layer 06 calibrated (best Val Loss=0.131972)
+
+--- Calibrating layer 07 (pass 2) ---
+  Layer 07: 259 train, 28 val samples
+  Initial λ: 0.6294
+  Layer 07 Step [001/200] | Train: 0.148292 | Val: 0.153256 | L_Out: 0.077742 | L_KL: 0.112082 | MSE: 0.003844 | λ: 0.6294 | Temp: 1.998
+  Layer 07 Step [010/200] | Train: 0.155438 | Val: 0.142387 | L_Out: 0.075922 | L_KL: 0.126327 | MSE: 0.003895 | λ: 0.6152 | Temp: 1.980
+  Layer 07 Step [020/200] | Train: 0.145820 | Val: 0.145226 | L_Out: 0.074790 | L_KL: 0.115455 | MSE: 0.004026 | λ: 0.6315 | Temp: 1.960
+  Layer 07 Step [030/200] | Train: 0.151749 | Val: 0.145446 | L_Out: 0.073418 | L_KL: 0.124039 | MSE: 0.003900 | λ: 0.6117 | Temp: 1.941
+  Layer 07 Step [040/200] | Train: 0.145642 | Val: 0.138219 | L_Out: 0.068550 | L_KL: 0.126030 | MSE: 0.003973 | λ: 0.5778 | Temp: 1.922
+  Layer 07 Step [050/200] | Train: 0.149213 | Val: 0.133907 | L_Out: 0.068894 | L_KL: 0.139007 | MSE: 0.004508 | λ: 0.5367 | Temp: 1.902
+  Layer 07 Step [060/200] | Train: 0.133842 | Val: 0.132778 | L_Out: 0.065004 | L_KL: 0.128258 | MSE: 0.004127 | λ: 0.5218 | Temp: 1.883
+  Layer 07 Step [070/200] | Train: 0.122674 | Val: 0.131800 | L_Out: 0.063211 | L_KL: 0.113965 | MSE: 0.003496 | λ: 0.5382 | Temp: 1.865
+  Layer 07 Step [080/200] | Train: 0.125371 | Val: 0.133303 | L_Out: 0.065717 | L_KL: 0.110839 | MSE: 0.003146 | λ: 0.5656 | Temp: 1.846
+  Layer 07 Step [090/200] | Train: 0.140562 | Val: 0.133405 | L_Out: 0.070415 | L_KL: 0.124031 | MSE: 0.003683 | λ: 0.5666 | Temp: 1.828
+  Layer 07 Step [100/200] | Train: 0.114958 | Val: 0.136883 | L_Out: 0.059112 | L_KL: 0.098557 | MSE: 0.002701 | λ: 0.5832 | Temp: 1.810
+  Layer 07 Step [110/200] | Train: 0.142365 | Val: 0.129756 | L_Out: 0.063877 | L_KL: 0.134580 | MSE: 0.003777 | λ: 0.5289 | Temp: 1.792
+  Layer 07 Step [120/200] | Train: 0.114547 | Val: 0.128234 | L_Out: 0.056142 | L_KL: 0.110421 | MSE: 0.003039 | λ: 0.5187 | Temp: 1.774
+  Layer 07 Step [130/200] | Train: 0.129244 | Val: 0.130777 | L_Out: 0.066221 | L_KL: 0.121505 | MSE: 0.003113 | λ: 0.5318 | Temp: 1.756
+  Layer 07 Step [140/200] | Train: 0.131238 | Val: 0.136324 | L_Out: 0.069512 | L_KL: 0.116059 | MSE: 0.003211 | λ: 0.5654 | Temp: 1.739
+  Layer 07 Step [150/200] | Train: 0.143126 | Val: 0.130928 | L_Out: 0.064559 | L_KL: 0.138959 | MSE: 0.003585 | λ: 0.5150 | Temp: 1.721
+  Layer 07 Step [160/200] | Train: 0.123642 | Val: 0.133474 | L_Out: 0.062837 | L_KL: 0.118069 | MSE: 0.002817 | λ: 0.5236 | Temp: 1.704
+  Layer 07 Step [170/200] | Train: 0.114975 | Val: 0.132380 | L_Out: 0.056099 | L_KL: 0.112446 | MSE: 0.003655 | λ: 0.5112 | Temp: 1.687
+  Layer 07 Step [180/200] | Train: 0.124659 | Val: 0.129493 | L_Out: 0.059199 | L_KL: 0.128040 | MSE: 0.003424 | λ: 0.4868 | Temp: 1.670
+  Layer 07 Step [190/200] | Train: 0.133608 | Val: 0.132146 | L_Out: 0.068033 | L_KL: 0.134707 | MSE: 0.003384 | λ: 0.4959 | Temp: 1.654
+  Layer 07 Step [200/200] | Train: 0.142655 | Val: 0.128391 | L_Out: 0.066757 | L_KL: 0.153045 | MSE: 0.003592 | λ: 0.4661 | Temp: 1.637
+  ✓ Layer 07 calibrated (best Val Loss=0.128234)
+
+--- Calibrating layer 08 (pass 2) ---
+  Layer 08: 259 train, 28 val samples
+  Initial λ: 0.7413
+  Layer 08 Step [001/200] | Train: 0.111198 | Val: 0.123671 | L_Out: 0.050943 | L_KL: 0.081281 | MSE: 0.003479 | λ: 0.7413 | Temp: 1.998
+  Layer 08 Step [010/200] | Train: 0.115455 | Val: 0.119038 | L_Out: 0.052002 | L_KL: 0.085594 | MSE: 0.003553 | λ: 0.6744 | Temp: 1.980
+  Layer 08 Step [020/200] | Train: 0.108883 | Val: 0.115472 | L_Out: 0.053034 | L_KL: 0.082809 | MSE: 0.003703 | λ: 0.6574 | Temp: 1.960
+  Layer 08 Step [030/200] | Train: 0.126667 | Val: 0.111321 | L_Out: 0.057441 | L_KL: 0.105298 | MSE: 0.004295 | λ: 0.6015 | Temp: 1.941
+  Layer 08 Step [040/200] | Train: 0.110271 | Val: 0.113724 | L_Out: 0.058146 | L_KL: 0.086662 | MSE: 0.003644 | λ: 0.6362 | Temp: 1.922
+  Layer 08 Step [050/200] | Train: 0.106864 | Val: 0.109544 | L_Out: 0.048604 | L_KL: 0.091573 | MSE: 0.003712 | λ: 0.5835 | Temp: 1.902
+  Layer 08 Step [060/200] | Train: 0.096777 | Val: 0.109399 | L_Out: 0.047717 | L_KL: 0.084081 | MSE: 0.003328 | λ: 0.5755 | Temp: 1.883
+  Layer 08 Step [070/200] | Train: 0.112659 | Val: 0.102431 | L_Out: 0.049214 | L_KL: 0.110243 | MSE: 0.004232 | λ: 0.5110 | Temp: 1.865
+  Layer 08 Step [080/200] | Train: 0.110661 | Val: 0.102399 | L_Out: 0.055174 | L_KL: 0.108594 | MSE: 0.003799 | λ: 0.5095 | Temp: 1.846
+  Layer 08 Step [090/200] | Train: 0.108367 | Val: 0.103112 | L_Out: 0.053095 | L_KL: 0.108479 | MSE: 0.003954 | λ: 0.4995 | Temp: 1.828
+  Layer 08 Step [100/200] | Train: 0.113988 | Val: 0.097507 | L_Out: 0.052064 | L_KL: 0.123976 | MSE: 0.004696 | λ: 0.4597 | Temp: 1.810
+  Layer 08 Step [110/200] | Train: 0.101812 | Val: 0.105343 | L_Out: 0.055892 | L_KL: 0.099887 | MSE: 0.003382 | λ: 0.5096 | Temp: 1.792
+  Layer 08 Step [120/200] | Train: 0.102238 | Val: 0.118960 | L_Out: 0.060695 | L_KL: 0.081515 | MSE: 0.002747 | λ: 0.6271 | Temp: 1.774
+  Layer 08 Step [130/200] | Train: 0.130056 | Val: 0.124954 | L_Out: 0.071105 | L_KL: 0.094004 | MSE: 0.003451 | λ: 0.6918 | Temp: 1.756
+  Layer 08 Step [140/200] | Train: 0.137039 | Val: 0.114864 | L_Out: 0.054424 | L_KL: 0.119427 | MSE: 0.003940 | λ: 0.5737 | Temp: 1.739
+  Layer 08 Step [150/200] | Train: 0.123892 | Val: 0.106901 | L_Out: 0.053377 | L_KL: 0.122905 | MSE: 0.004102 | λ: 0.5040 | Temp: 1.721
+  Layer 08 Step [160/200] | Train: 0.095796 | Val: 0.109842 | L_Out: 0.049883 | L_KL: 0.091094 | MSE: 0.002797 | λ: 0.5258 | Temp: 1.704
+  Layer 08 Step [170/200] | Train: 0.112145 | Val: 0.102154 | L_Out: 0.047101 | L_KL: 0.123704 | MSE: 0.004101 | λ: 0.4533 | Temp: 1.687
+  Layer 08 Step [180/200] | Train: 0.092130 | Val: 0.104456 | L_Out: 0.046721 | L_KL: 0.100179 | MSE: 0.003075 | λ: 0.4598 | Temp: 1.670
+  Layer 08 Step [190/200] | Train: 0.099255 | Val: 0.101599 | L_Out: 0.046838 | L_KL: 0.113992 | MSE: 0.003550 | λ: 0.4354 | Temp: 1.654
+  Layer 08 Step [200/200] | Train: 0.109389 | Val: 0.103222 | L_Out: 0.054807 | L_KL: 0.125371 | MSE: 0.003669 | λ: 0.4363 | Temp: 1.637
+  ✓ Layer 08 calibrated (best Val Loss=0.097507)
+
+--- Calibrating layer 09 (pass 2) ---
+  Layer 09: 259 train, 28 val samples
+  Initial λ: 0.8634
+  Layer 09 Step [001/200] | Train: 0.125306 | Val: 0.141464 | L_Out: 0.072772 | L_KL: 0.060847 | MSE: 0.002905 | λ: 0.8634 | Temp: 1.998
+  Layer 09 Step [010/200] | Train: 0.148131 | Val: 0.133757 | L_Out: 0.063067 | L_KL: 0.098527 | MSE: 0.004472 | λ: 0.7517 | Temp: 1.980
+  Layer 09 Step [020/200] | Train: 0.130537 | Val: 0.136511 | L_Out: 0.069265 | L_KL: 0.081508 | MSE: 0.003833 | λ: 0.8008 | Temp: 1.960
+  Layer 09 Step [030/200] | Train: 0.149734 | Val: 0.140791 | L_Out: 0.080713 | L_KL: 0.086193 | MSE: 0.003753 | λ: 0.8686 | Temp: 1.941
+  Layer 09 Step [040/200] | Train: 0.144112 | Val: 0.137259 | L_Out: 0.063986 | L_KL: 0.092248 | MSE: 0.004395 | λ: 0.7811 | Temp: 1.922
+  Layer 09 Step [050/200] | Train: 0.141220 | Val: 0.130212 | L_Out: 0.066594 | L_KL: 0.095537 | MSE: 0.004049 | λ: 0.7391 | Temp: 1.902
+  Layer 09 Step [060/200] | Train: 0.122537 | Val: 0.141043 | L_Out: 0.071298 | L_KL: 0.069329 | MSE: 0.003024 | λ: 0.8837 | Temp: 1.883
+  Layer 09 Step [070/200] | Train: 0.128907 | Val: 0.134732 | L_Out: 0.060483 | L_KL: 0.077426 | MSE: 0.003545 | λ: 0.8325 | Temp: 1.865
+  Layer 09 Step [080/200] | Train: 0.137332 | Val: 0.128194 | L_Out: 0.059449 | L_KL: 0.093558 | MSE: 0.003663 | λ: 0.7339 | Temp: 1.846
+  Layer 09 Step [090/200] | Train: 0.124473 | Val: 0.128018 | L_Out: 0.063673 | L_KL: 0.082840 | MSE: 0.003382 | λ: 0.7513 | Temp: 1.828
+  Layer 09 Step [100/200] | Train: 0.141978 | Val: 0.141205 | L_Out: 0.085590 | L_KL: 0.075055 | MSE: 0.003024 | λ: 0.9458 | Temp: 1.810
+  Layer 09 Step [110/200] | Train: 0.156056 | Val: 0.130358 | L_Out: 0.063708 | L_KL: 0.097638 | MSE: 0.003583 | λ: 0.7992 | Temp: 1.792
+  Layer 09 Step [120/200] | Train: 0.155233 | Val: 0.119669 | L_Out: 0.062452 | L_KL: 0.116098 | MSE: 0.004661 | λ: 0.6685 | Temp: 1.774
+  Layer 09 Step [130/200] | Train: 0.119662 | Val: 0.120028 | L_Out: 0.057943 | L_KL: 0.092319 | MSE: 0.003422 | λ: 0.6481 | Temp: 1.756
+  Layer 09 Step [140/200] | Train: 0.115313 | Val: 0.123217 | L_Out: 0.059870 | L_KL: 0.085549 | MSE: 0.003073 | λ: 0.6740 | Temp: 1.739
+  Layer 09 Step [150/200] | Train: 0.124733 | Val: 0.127662 | L_Out: 0.065906 | L_KL: 0.087286 | MSE: 0.003212 | λ: 0.7145 | Temp: 1.721
+  Layer 09 Step [160/200] | Train: 0.139842 | Val: 0.121637 | L_Out: 0.061140 | L_KL: 0.110148 | MSE: 0.003906 | λ: 0.6348 | Temp: 1.704
+  Layer 09 Step [170/200] | Train: 0.128722 | Val: 0.119958 | L_Out: 0.061656 | L_KL: 0.105651 | MSE: 0.003731 | λ: 0.6092 | Temp: 1.687
+  Layer 09 Step [180/200] | Train: 0.103315 | Val: 0.130974 | L_Out: 0.059187 | L_KL: 0.072438 | MSE: 0.002892 | λ: 0.7131 | Temp: 1.670
+  Layer 09 Step [190/200] | Train: 0.137182 | Val: 0.125587 | L_Out: 0.062396 | L_KL: 0.104870 | MSE: 0.003503 | λ: 0.6541 | Temp: 1.654
+  Layer 09 Step [200/200] | Train: 0.127851 | Val: 0.125539 | L_Out: 0.062878 | L_KL: 0.099338 | MSE: 0.003200 | λ: 0.6435 | Temp: 1.637
+  ✓ Layer 09 calibrated (best Val Loss=0.119669)
+
+--- Calibrating layer 10 (pass 2) ---
+  Layer 10: 259 train, 28 val samples
+  Initial λ: 0.5469
+  Layer 10 Step [001/200] | Train: 0.090254 | Val: 0.089788 | L_Out: 0.048698 | L_KL: 0.075987 | MSE: 0.006009 | λ: 0.5469 | Temp: 1.998
+  Layer 10 Step [010/200] | Train: 0.085989 | Val: 0.097524 | L_Out: 0.050757 | L_KL: 0.064422 | MSE: 0.004738 | λ: 0.6674 | Temp: 1.980
+  Layer 10 Step [020/200] | Train: 0.093890 | Val: 0.110086 | L_Out: 0.055988 | L_KL: 0.056792 | MSE: 0.003823 | λ: 0.8266 | Temp: 1.960
+  Layer 10 Step [030/200] | Train: 0.105344 | Val: 0.105622 | L_Out: 0.047797 | L_KL: 0.069617 | MSE: 0.004728 | λ: 0.7566 | Temp: 1.941
+  Layer 10 Step [040/200] | Train: 0.085781 | Val: 0.109715 | L_Out: 0.045248 | L_KL: 0.053572 | MSE: 0.003976 | λ: 0.8006 | Temp: 1.922
+  Layer 10 Step [050/200] | Train: 0.122480 | Val: 0.100262 | L_Out: 0.049850 | L_KL: 0.090719 | MSE: 0.005677 | λ: 0.6751 | Temp: 1.902
+  Layer 10 Step [060/200] | Train: 0.103366 | Val: 0.107280 | L_Out: 0.058704 | L_KL: 0.066160 | MSE: 0.003402 | λ: 0.7812 | Temp: 1.883
+  Layer 10 Step [070/200] | Train: 0.106142 | Val: 0.101056 | L_Out: 0.046891 | L_KL: 0.075849 | MSE: 0.004864 | λ: 0.6997 | Temp: 1.865
+  Layer 10 Step [080/200] | Train: 0.112733 | Val: 0.092375 | L_Out: 0.045863 | L_KL: 0.095569 | MSE: 0.005656 | λ: 0.5898 | Temp: 1.846
+  Layer 10 Step [090/200] | Train: 0.077926 | Val: 0.097209 | L_Out: 0.042496 | L_KL: 0.060072 | MSE: 0.003507 | λ: 0.6486 | Temp: 1.828
+  Layer 10 Step [100/200] | Train: 0.111416 | Val: 0.112486 | L_Out: 0.067409 | L_KL: 0.067848 | MSE: 0.004432 | λ: 0.8211 | Temp: 1.810
+  Layer 10 Step [110/200] | Train: 0.125933 | Val: 0.097425 | L_Out: 0.045025 | L_KL: 0.098540 | MSE: 0.004952 | λ: 0.6390 | Temp: 1.792
+  Layer 10 Step [120/200] | Train: 0.098208 | Val: 0.092782 | L_Out: 0.042741 | L_KL: 0.086804 | MSE: 0.004567 | λ: 0.5657 | Temp: 1.774
+  Layer 10 Step [130/200] | Train: 0.087231 | Val: 0.096880 | L_Out: 0.047253 | L_KL: 0.070672 | MSE: 0.004161 | λ: 0.6172 | Temp: 1.756
+  Layer 10 Step [140/200] | Train: 0.104633 | Val: 0.090585 | L_Out: 0.043844 | L_KL: 0.098497 | MSE: 0.005233 | λ: 0.5311 | Temp: 1.739
+  Layer 10 Step [150/200] | Train: 0.088076 | Val: 0.090337 | L_Out: 0.042812 | L_KL: 0.085219 | MSE: 0.005128 | λ: 0.5168 | Temp: 1.721
+  Layer 10 Step [160/200] | Train: 0.101977 | Val: 0.088551 | L_Out: 0.048377 | L_KL: 0.103722 | MSE: 0.005305 | λ: 0.4916 | Temp: 1.704
+  Layer 10 Step [170/200] | Train: 0.087544 | Val: 0.085287 | L_Out: 0.039743 | L_KL: 0.097238 | MSE: 0.005353 | λ: 0.4502 | Temp: 1.687
+  Layer 10 Step [180/200] | Train: 0.080803 | Val: 0.087673 | L_Out: 0.042011 | L_KL: 0.086174 | MSE: 0.004207 | λ: 0.4688 | Temp: 1.670
+  Layer 10 Step [190/200] | Train: 0.093591 | Val: 0.085550 | L_Out: 0.043529 | L_KL: 0.106779 | MSE: 0.004896 | λ: 0.4382 | Temp: 1.654
+  Layer 10 Step [200/200] | Train: 0.088071 | Val: 0.085158 | L_Out: 0.042941 | L_KL: 0.102978 | MSE: 0.004932 | λ: 0.4276 | Temp: 1.637
+  ✓ Layer 10 calibrated (best Val Loss=0.085158)
+
+--- Calibrating layer 11 (pass 2) ---
+  Layer 11: 259 train, 28 val samples
+  Initial λ: 0.8654
+  Layer 11 Step [001/200] | Train: 0.078178 | Val: 0.072255 | L_Out: 0.040406 | L_KL: 0.043649 | MSE: 0.014294 | λ: 0.8654 | Temp: 1.998
+  Layer 11 Step [010/200] | Train: 0.058047 | Val: 0.074770 | L_Out: 0.031545 | L_KL: 0.030626 | MSE: 0.012867 | λ: 0.9477 | Temp: 1.980
+  Layer 11 Step [020/200] | Train: 0.092008 | Val: 0.071458 | L_Out: 0.041923 | L_KL: 0.052850 | MSE: 0.012696 | λ: 0.8705 | Temp: 1.960
+  Layer 11 Step [030/200] | Train: 0.080932 | Val: 0.071390 | L_Out: 0.039749 | L_KL: 0.047311 | MSE: 0.012717 | λ: 0.8553 | Temp: 1.941
+  Layer 11 Step [040/200] | Train: 0.069638 | Val: 0.071953 | L_Out: 0.034588 | L_KL: 0.040979 | MSE: 0.011202 | λ: 0.8497 | Temp: 1.922
+  Layer 11 Step [050/200] | Train: 0.074090 | Val: 0.072877 | L_Out: 0.037839 | L_KL: 0.042664 | MSE: 0.012191 | λ: 0.8683 | Temp: 1.902
+  Layer 11 Step [060/200] | Train: 0.071359 | Val: 0.073845 | L_Out: 0.036969 | L_KL: 0.039607 | MSE: 0.013469 | λ: 0.9008 | Temp: 1.883
+  Layer 11 Step [070/200] | Train: 0.090021 | Val: 0.070214 | L_Out: 0.041389 | L_KL: 0.053985 | MSE: 0.013413 | λ: 0.8337 | Temp: 1.865
+  Layer 11 Step [080/200] | Train: 0.078558 | Val: 0.070378 | L_Out: 0.039144 | L_KL: 0.047272 | MSE: 0.013789 | λ: 0.8309 | Temp: 1.846
+  Layer 11 Step [090/200] | Train: 0.087042 | Val: 0.068296 | L_Out: 0.039708 | L_KL: 0.056967 | MSE: 0.014230 | λ: 0.7640 | Temp: 1.828
+  Layer 11 Step [100/200] | Train: 0.085728 | Val: 0.067119 | L_Out: 0.039813 | L_KL: 0.060100 | MSE: 0.013884 | λ: 0.7132 | Temp: 1.810
+  Layer 11 Step [110/200] | Train: 0.082718 | Val: 0.066116 | L_Out: 0.039159 | L_KL: 0.061074 | MSE: 0.013562 | λ: 0.6772 | Temp: 1.792
+  Layer 11 Step [120/200] | Train: 0.071396 | Val: 0.069636 | L_Out: 0.038380 | L_KL: 0.048754 | MSE: 0.013057 | λ: 0.7322 | Temp: 1.774
+  Layer 11 Step [130/200] | Train: 0.070886 | Val: 0.071014 | L_Out: 0.037295 | L_KL: 0.045875 | MSE: 0.013265 | λ: 0.7726 | Temp: 1.756
+  Layer 11 Step [140/200] | Train: 0.087704 | Val: 0.070181 | L_Out: 0.042021 | L_KL: 0.059129 | MSE: 0.013081 | λ: 0.7416 | Temp: 1.739
+  Layer 11 Step [150/200] | Train: 0.080067 | Val: 0.069361 | L_Out: 0.038004 | L_KL: 0.056717 | MSE: 0.014218 | λ: 0.7059 | Temp: 1.721
+  Layer 11 Step [160/200] | Train: 0.064332 | Val: 0.071096 | L_Out: 0.033586 | L_KL: 0.043559 | MSE: 0.016400 | λ: 0.7384 | Temp: 1.704
+  Layer 11 Step [170/200] | Train: 0.082478 | Val: 0.072355 | L_Out: 0.041890 | L_KL: 0.054963 | MSE: 0.013259 | λ: 0.7503 | Temp: 1.687
+  Layer 11 Step [180/200] | Train: 0.080771 | Val: 0.073224 | L_Out: 0.040142 | L_KL: 0.054151 | MSE: 0.013111 | λ: 0.7458 | Temp: 1.670
+  Layer 11 Step [190/200] | Train: 0.077856 | Val: 0.071441 | L_Out: 0.036378 | L_KL: 0.055616 | MSE: 0.011898 | λ: 0.6999 | Temp: 1.654
+  Layer 11 Step [200/200] | Train: 0.080797 | Val: 0.070027 | L_Out: 0.038032 | L_KL: 0.061097 | MSE: 0.011892 | λ: 0.6612 | Temp: 1.637
+  ✓ Layer 11 calibrated (best Val Loss=0.066116)
+
+  Pass 2 completed. Evaluating current model on calibration data...
+  ✓ New best PPL: 26.28
+
+  Unfroze all layers for next calibration pass.
+
+======================================================================
+SEQUENTIAL CALIBRATION PASS 3/3
+======================================================================
+
+--- Calibrating layer 00 (pass 3) ---
+  Layer 00: 259 train, 28 val samples
+  Initial λ: 0.3906
+  Layer 00 Step [001/200] | Train: 0.021247 | Val: 0.019947 | L_Out: 0.010732 | L_KL: 0.026920 | MSE: 0.000270 | λ: 0.3906 | Temp: 1.998
+  Layer 00 Step [010/200] | Train: 0.021125 | Val: 0.019548 | L_Out: 0.010194 | L_KL: 0.027985 | MSE: 0.000284 | λ: 0.3774 | Temp: 1.980
+  Layer 00 Step [020/200] | Train: 0.021224 | Val: 0.019445 | L_Out: 0.010530 | L_KL: 0.028331 | MSE: 0.000256 | λ: 0.3746 | Temp: 1.960
+  Layer 00 Step [030/200] | Train: 0.020267 | Val: 0.018913 | L_Out: 0.009743 | L_KL: 0.028095 | MSE: 0.000237 | λ: 0.3607 | Temp: 1.941
+  Layer 00 Step [040/200] | Train: 0.020069 | Val: 0.018653 | L_Out: 0.009770 | L_KL: 0.028553 | MSE: 0.000247 | λ: 0.3514 | Temp: 1.922
+  Layer 00 Step [050/200] | Train: 0.016619 | Val: 0.020902 | L_Out: 0.009931 | L_KL: 0.019031 | MSE: 0.000268 | λ: 0.4366 | Temp: 1.902
+  Layer 00 Step [060/200] | Train: 0.021376 | Val: 0.020024 | L_Out: 0.009666 | L_KL: 0.026821 | MSE: 0.000232 | λ: 0.3985 | Temp: 1.883
+  Layer 00 Step [070/200] | Train: 0.019422 | Val: 0.020235 | L_Out: 0.009964 | L_KL: 0.023732 | MSE: 0.000228 | λ: 0.4092 | Temp: 1.865
+  Layer 00 Step [080/200] | Train: 0.020874 | Val: 0.018768 | L_Out: 0.008874 | L_KL: 0.029327 | MSE: 0.000243 | λ: 0.3559 | Temp: 1.846
+  Layer 00 Step [090/200] | Train: 0.018805 | Val: 0.019122 | L_Out: 0.009713 | L_KL: 0.025546 | MSE: 0.000234 | λ: 0.3681 | Temp: 1.828
+  Layer 00 Step [100/200] | Train: 0.019401 | Val: 0.018885 | L_Out: 0.009547 | L_KL: 0.026773 | MSE: 0.000242 | λ: 0.3623 | Temp: 1.810
+  Layer 00 Step [110/200] | Train: 0.019026 | Val: 0.018890 | L_Out: 0.009387 | L_KL: 0.026603 | MSE: 0.000228 | λ: 0.3576 | Temp: 1.792
+  Layer 00 Step [120/200] | Train: 0.019383 | Val: 0.019290 | L_Out: 0.010047 | L_KL: 0.026109 | MSE: 0.000258 | λ: 0.3712 | Temp: 1.774
+  Layer 00 Step [130/200] | Train: 0.020787 | Val: 0.018515 | L_Out: 0.009178 | L_KL: 0.031272 | MSE: 0.000233 | λ: 0.3324 | Temp: 1.756
+  Layer 00 Step [140/200] | Train: 0.017570 | Val: 0.019083 | L_Out: 0.009103 | L_KL: 0.025475 | MSE: 0.000223 | λ: 0.3448 | Temp: 1.739
+  Layer 00 Step [150/200] | Train: 0.018502 | Val: 0.019072 | L_Out: 0.009202 | L_KL: 0.026969 | MSE: 0.000217 | λ: 0.3430 | Temp: 1.721
+  Layer 00 Step [160/200] | Train: 0.021848 | Val: 0.018596 | L_Out: 0.010212 | L_KL: 0.033921 | MSE: 0.000248 | λ: 0.3220 | Temp: 1.704
+  Layer 00 Step [170/200] | Train: 0.018463 | Val: 0.017977 | L_Out: 0.008521 | L_KL: 0.030871 | MSE: 0.000228 | λ: 0.2990 | Temp: 1.687
+  Layer 00 Step [180/200] | Train: 0.018274 | Val: 0.018203 | L_Out: 0.009213 | L_KL: 0.030302 | MSE: 0.000239 | λ: 0.3015 | Temp: 1.670
+  Layer 00 Step [190/200] | Train: 0.019021 | Val: 0.018004 | L_Out: 0.009150 | L_KL: 0.032736 | MSE: 0.000234 | λ: 0.2905 | Temp: 1.654
+  Layer 00 Step [200/200] | Train: 0.017215 | Val: 0.018718 | L_Out: 0.009155 | L_KL: 0.027744 | MSE: 0.000220 | λ: 0.3103 | Temp: 1.637
+  ✓ Layer 00 calibrated (best Val Loss=0.017977)
+
+--- Calibrating layer 01 (pass 3) ---
+  Layer 01: 259 train, 28 val samples
+  Initial λ: 1.5964
+  Layer 01 Step [001/200] | Train: 0.037483 | Val: 0.036348 | L_Out: 0.018791 | L_KL: 0.011709 | MSE: 0.001435 | λ: 1.5964 | Temp: 1.998
+  Layer 01 Step [010/200] | Train: 0.039555 | Val: 0.036089 | L_Out: 0.019507 | L_KL: 0.012558 | MSE: 0.001517 | λ: 1.5748 | Temp: 1.980
+  Layer 01 Step [020/200] | Train: 0.035534 | Val: 0.036154 | L_Out: 0.018164 | L_KL: 0.011030 | MSE: 0.001324 | λ: 1.6108 | Temp: 1.960
+  Layer 01 Step [030/200] | Train: 0.036497 | Val: 0.036357 | L_Out: 0.017736 | L_KL: 0.011646 | MSE: 0.001361 | λ: 1.5669 | Temp: 1.941
+  Layer 01 Step [040/200] | Train: 0.040201 | Val: 0.035383 | L_Out: 0.019009 | L_KL: 0.013525 | MSE: 0.001449 | λ: 1.4861 | Temp: 1.922
+  Layer 01 Step [050/200] | Train: 0.040961 | Val: 0.034725 | L_Out: 0.019368 | L_KL: 0.014529 | MSE: 0.001504 | λ: 1.4096 | Temp: 1.902
+  Layer 01 Step [060/200] | Train: 0.030548 | Val: 0.035998 | L_Out: 0.016411 | L_KL: 0.010029 | MSE: 0.001275 | λ: 1.5230 | Temp: 1.883
+  Layer 01 Step [070/200] | Train: 0.036992 | Val: 0.034691 | L_Out: 0.017753 | L_KL: 0.012632 | MSE: 0.001327 | λ: 1.4642 | Temp: 1.865
+  Layer 01 Step [080/200] | Train: 0.036209 | Val: 0.034857 | L_Out: 0.017362 | L_KL: 0.012872 | MSE: 0.001326 | λ: 1.4065 | Temp: 1.846
+  Layer 01 Step [090/200] | Train: 0.029120 | Val: 0.035673 | L_Out: 0.015078 | L_KL: 0.009983 | MSE: 0.001154 | λ: 1.4584 | Temp: 1.828
+  Layer 01 Step [100/200] | Train: 0.036642 | Val: 0.033728 | L_Out: 0.016150 | L_KL: 0.014051 | MSE: 0.001292 | λ: 1.3039 | Temp: 1.810
+  Layer 01 Step [110/200] | Train: 0.035009 | Val: 0.033565 | L_Out: 0.016972 | L_KL: 0.013833 | MSE: 0.001325 | λ: 1.2654 | Temp: 1.792
+  Layer 01 Step [120/200] | Train: 0.032893 | Val: 0.034086 | L_Out: 0.016201 | L_KL: 0.013191 | MSE: 0.001253 | λ: 1.2468 | Temp: 1.774
+  Layer 01 Step [130/200] | Train: 0.032104 | Val: 0.034226 | L_Out: 0.016070 | L_KL: 0.012861 | MSE: 0.001225 | λ: 1.2481 | Temp: 1.756
+  Layer 01 Step [140/200] | Train: 0.037821 | Val: 0.033004 | L_Out: 0.017419 | L_KL: 0.016346 | MSE: 0.001395 | λ: 1.1569 | Temp: 1.739
+  Layer 01 Step [150/200] | Train: 0.031425 | Val: 0.033371 | L_Out: 0.016278 | L_KL: 0.013093 | MSE: 0.001328 | λ: 1.2001 | Temp: 1.721
+  Layer 01 Step [160/200] | Train: 0.033985 | Val: 0.033102 | L_Out: 0.016531 | L_KL: 0.014544 | MSE: 0.001273 | λ: 1.1684 | Temp: 1.704
+  Layer 01 Step [170/200] | Train: 0.032632 | Val: 0.033600 | L_Out: 0.016472 | L_KL: 0.013831 | MSE: 0.001204 | λ: 1.1796 | Temp: 1.687
+  Layer 01 Step [180/200] | Train: 0.036872 | Val: 0.032517 | L_Out: 0.017018 | L_KL: 0.016831 | MSE: 0.001349 | λ: 1.0954 | Temp: 1.670
+  Layer 01 Step [190/200] | Train: 0.027507 | Val: 0.034335 | L_Out: 0.015035 | L_KL: 0.011387 | MSE: 0.001115 | λ: 1.2079 | Temp: 1.654
+  Layer 01 Step [200/200] | Train: 0.037582 | Val: 0.033430 | L_Out: 0.017232 | L_KL: 0.016847 | MSE: 0.001296 | λ: 1.1154 | Temp: 1.637
+  ✓ Layer 01 calibrated (best Val Loss=0.032517)
+
+--- Calibrating layer 02 (pass 3) ---
+  Layer 02: 259 train, 28 val samples
+  Initial λ: 0.5385
+  Layer 02 Step [001/200] | Train: 0.065355 | Val: 0.064115 | L_Out: 0.033933 | L_KL: 0.058354 | MSE: 0.002703 | λ: 0.5385 | Temp: 1.998
+  Layer 02 Step [010/200] | Train: 0.071802 | Val: 0.062359 | L_Out: 0.033776 | L_KL: 0.070618 | MSE: 0.003006 | λ: 0.5084 | Temp: 1.980
+  Layer 02 Step [020/200] | Train: 0.058181 | Val: 0.061837 | L_Out: 0.032591 | L_KL: 0.050336 | MSE: 0.002726 | λ: 0.5779 | Temp: 1.960
+  Layer 02 Step [030/200] | Train: 0.070557 | Val: 0.061134 | L_Out: 0.033185 | L_KL: 0.064666 | MSE: 0.002952 | λ: 0.5455 | Temp: 1.941
+  Layer 02 Step [040/200] | Train: 0.063141 | Val: 0.062045 | L_Out: 0.032334 | L_KL: 0.056470 | MSE: 0.002587 | λ: 0.5591 | Temp: 1.922
+  Layer 02 Step [050/200] | Train: 0.063546 | Val: 0.060881 | L_Out: 0.031177 | L_KL: 0.057897 | MSE: 0.002755 | λ: 0.5488 | Temp: 1.902
+  Layer 02 Step [060/200] | Train: 0.065856 | Val: 0.060310 | L_Out: 0.031426 | L_KL: 0.062738 | MSE: 0.002798 | λ: 0.5248 | Temp: 1.883
+  Layer 02 Step [070/200] | Train: 0.064360 | Val: 0.058779 | L_Out: 0.031503 | L_KL: 0.062603 | MSE: 0.002690 | λ: 0.5140 | Temp: 1.865
+  Layer 02 Step [080/200] | Train: 0.055449 | Val: 0.061477 | L_Out: 0.029837 | L_KL: 0.049825 | MSE: 0.002224 | λ: 0.5564 | Temp: 1.846
+  Layer 02 Step [090/200] | Train: 0.067582 | Val: 0.061440 | L_Out: 0.032697 | L_KL: 0.062693 | MSE: 0.002802 | λ: 0.5390 | Temp: 1.828
+  Layer 02 Step [100/200] | Train: 0.064445 | Val: 0.062102 | L_Out: 0.030573 | L_KL: 0.062844 | MSE: 0.002780 | λ: 0.5127 | Temp: 1.810
+  Layer 02 Step [110/200] | Train: 0.060554 | Val: 0.060269 | L_Out: 0.030817 | L_KL: 0.057995 | MSE: 0.002558 | λ: 0.5221 | Temp: 1.792
+  Layer 02 Step [120/200] | Train: 0.068444 | Val: 0.057880 | L_Out: 0.031741 | L_KL: 0.070304 | MSE: 0.002769 | λ: 0.4868 | Temp: 1.774
+  Layer 02 Step [130/200] | Train: 0.058119 | Val: 0.058756 | L_Out: 0.029060 | L_KL: 0.059698 | MSE: 0.002647 | λ: 0.4868 | Temp: 1.756
+  Layer 02 Step [140/200] | Train: 0.061943 | Val: 0.059200 | L_Out: 0.030697 | L_KL: 0.064190 | MSE: 0.002447 | λ: 0.4825 | Temp: 1.739
+  Layer 02 Step [150/200] | Train: 0.062259 | Val: 0.058834 | L_Out: 0.031016 | L_KL: 0.064752 | MSE: 0.002459 | λ: 0.4807 | Temp: 1.721
+  Layer 02 Step [160/200] | Train: 0.059467 | Val: 0.061223 | L_Out: 0.030995 | L_KL: 0.059224 | MSE: 0.002570 | λ: 0.5020 | Temp: 1.704
+  Layer 02 Step [170/200] | Train: 0.064314 | Val: 0.059404 | L_Out: 0.030276 | L_KL: 0.067800 | MSE: 0.002610 | λ: 0.4743 | Temp: 1.687
+  Layer 02 Step [180/200] | Train: 0.060853 | Val: 0.059883 | L_Out: 0.030589 | L_KL: 0.063808 | MSE: 0.002521 | λ: 0.4768 | Temp: 1.670
+  Layer 02 Step [190/200] | Train: 0.061250 | Val: 0.061239 | L_Out: 0.030113 | L_KL: 0.065299 | MSE: 0.002567 | λ: 0.4690 | Temp: 1.654
+  Layer 02 Step [200/200] | Train: 0.060445 | Val: 0.060595 | L_Out: 0.029702 | L_KL: 0.065550 | MSE: 0.002583 | λ: 0.4611 | Temp: 1.637
+  ✓ Layer 02 calibrated (best Val Loss=0.057880)
+
+--- Calibrating layer 03 (pass 3) ---
+  Layer 03: 259 train, 28 val samples
+  Initial λ: 0.3405
+  Layer 03 Step [001/200] | Train: 0.094560 | Val: 0.093011 | L_Out: 0.046197 | L_KL: 0.142017 | MSE: 0.003598 | λ: 0.3405 | Temp: 1.998
+  Layer 03 Step [010/200] | Train: 0.096818 | Val: 0.092145 | L_Out: 0.047410 | L_KL: 0.145085 | MSE: 0.003427 | λ: 0.3337 | Temp: 1.980
+  Layer 03 Step [020/200] | Train: 0.094639 | Val: 0.088364 | L_Out: 0.045175 | L_KL: 0.148250 | MSE: 0.003205 | λ: 0.3192 | Temp: 1.960
+  Layer 03 Step [030/200] | Train: 0.087084 | Val: 0.090490 | L_Out: 0.043277 | L_KL: 0.137246 | MSE: 0.002605 | λ: 0.3173 | Temp: 1.941
+  Layer 03 Step [040/200] | Train: 0.091647 | Val: 0.087239 | L_Out: 0.043468 | L_KL: 0.151862 | MSE: 0.002982 | λ: 0.3017 | Temp: 1.922
+  Layer 03 Step [050/200] | Train: 0.094754 | Val: 0.085157 | L_Out: 0.046486 | L_KL: 0.159965 | MSE: 0.003251 | λ: 0.2962 | Temp: 1.902
+  Layer 03 Step [060/200] | Train: 0.086870 | Val: 0.087565 | L_Out: 0.044870 | L_KL: 0.141810 | MSE: 0.002774 | λ: 0.3063 | Temp: 1.883
+  Layer 03 Step [070/200] | Train: 0.077855 | Val: 0.087738 | L_Out: 0.039368 | L_KL: 0.125657 | MSE: 0.002511 | λ: 0.3098 | Temp: 1.865
+  Layer 03 Step [080/200] | Train: 0.085249 | Val: 0.084626 | L_Out: 0.040972 | L_KL: 0.142924 | MSE: 0.002883 | λ: 0.2982 | Temp: 1.846
+  Layer 03 Step [090/200] | Train: 0.090011 | Val: 0.084594 | L_Out: 0.042641 | L_KL: 0.158836 | MSE: 0.002838 | λ: 0.2833 | Temp: 1.828
+  Layer 03 Step [100/200] | Train: 0.079051 | Val: 0.083605 | L_Out: 0.039283 | L_KL: 0.140350 | MSE: 0.002772 | λ: 0.2816 | Temp: 1.810
+  Layer 03 Step [110/200] | Train: 0.084154 | Val: 0.080799 | L_Out: 0.040952 | L_KL: 0.153407 | MSE: 0.003006 | λ: 0.2743 | Temp: 1.792
+  Layer 03 Step [120/200] | Train: 0.083798 | Val: 0.081612 | L_Out: 0.040008 | L_KL: 0.159655 | MSE: 0.002531 | λ: 0.2624 | Temp: 1.774
+  Layer 03 Step [130/200] | Train: 0.072885 | Val: 0.081615 | L_Out: 0.037391 | L_KL: 0.135248 | MSE: 0.002465 | λ: 0.2694 | Temp: 1.756
+  Layer 03 Step [140/200] | Train: 0.077233 | Val: 0.080819 | L_Out: 0.039038 | L_KL: 0.141751 | MSE: 0.002588 | λ: 0.2724 | Temp: 1.739
+  Layer 03 Step [150/200] | Train: 0.073526 | Val: 0.080983 | L_Out: 0.036484 | L_KL: 0.135970 | MSE: 0.002245 | λ: 0.2704 | Temp: 1.721
+  Layer 03 Step [160/200] | Train: 0.082498 | Val: 0.079666 | L_Out: 0.039967 | L_KL: 0.157304 | MSE: 0.002697 | λ: 0.2622 | Temp: 1.704
+  Layer 03 Step [170/200] | Train: 0.086732 | Val: 0.079217 | L_Out: 0.041910 | L_KL: 0.170929 | MSE: 0.003098 | λ: 0.2537 | Temp: 1.687
+  Layer 03 Step [180/200] | Train: 0.084604 | Val: 0.077946 | L_Out: 0.040598 | L_KL: 0.173452 | MSE: 0.002728 | λ: 0.2439 | Temp: 1.670
+  Layer 03 Step [190/200] | Train: 0.081015 | Val: 0.077839 | L_Out: 0.039650 | L_KL: 0.169609 | MSE: 0.002838 | λ: 0.2388 | Temp: 1.654
+  Layer 03 Step [200/200] | Train: 0.073899 | Val: 0.078316 | L_Out: 0.036851 | L_KL: 0.155127 | MSE: 0.002619 | λ: 0.2382 | Temp: 1.637
+  ✓ Layer 03 calibrated (best Val Loss=0.077839)
+
+--- Calibrating layer 04 (pass 3) ---
+  Layer 04: 259 train, 28 val samples
+  Initial λ: 0.4276
+  Layer 04 Step [001/200] | Train: 0.089390 | Val: 0.085162 | L_Out: 0.043639 | L_KL: 0.106991 | MSE: 0.002533 | λ: 0.4276 | Temp: 1.998
+  Layer 04 Step [010/200] | Train: 0.083861 | Val: 0.079974 | L_Out: 0.040308 | L_KL: 0.101852 | MSE: 0.002643 | λ: 0.4117 | Temp: 1.980
+  Layer 04 Step [020/200] | Train: 0.079954 | Val: 0.080452 | L_Out: 0.040283 | L_KL: 0.096364 | MSE: 0.002240 | λ: 0.4149 | Temp: 1.960
+  Layer 04 Step [030/200] | Train: 0.083096 | Val: 0.082773 | L_Out: 0.041120 | L_KL: 0.101183 | MSE: 0.002562 | λ: 0.4106 | Temp: 1.941
+  Layer 04 Step [040/200] | Train: 0.086575 | Val: 0.082376 | L_Out: 0.042769 | L_KL: 0.106682 | MSE: 0.002529 | λ: 0.4058 | Temp: 1.922
+  Layer 04 Step [050/200] | Train: 0.079775 | Val: 0.083754 | L_Out: 0.040530 | L_KL: 0.096719 | MSE: 0.002371 | λ: 0.4124 | Temp: 1.902
+  Layer 04 Step [060/200] | Train: 0.085495 | Val: 0.080297 | L_Out: 0.039404 | L_KL: 0.111761 | MSE: 0.002589 | λ: 0.3825 | Temp: 1.883
+  Layer 04 Step [070/200] | Train: 0.084212 | Val: 0.078242 | L_Out: 0.039269 | L_KL: 0.117502 | MSE: 0.002542 | λ: 0.3583 | Temp: 1.865
+  Layer 04 Step [080/200] | Train: 0.075773 | Val: 0.080201 | L_Out: 0.038909 | L_KL: 0.102873 | MSE: 0.002272 | λ: 0.3683 | Temp: 1.846
+  Layer 04 Step [090/200] | Train: 0.090200 | Val: 0.078988 | L_Out: 0.043207 | L_KL: 0.127601 | MSE: 0.002784 | λ: 0.3534 | Temp: 1.828
+  Layer 04 Step [100/200] | Train: 0.075505 | Val: 0.079501 | L_Out: 0.038129 | L_KL: 0.105748 | MSE: 0.002419 | λ: 0.3570 | Temp: 1.810
+  Layer 04 Step [110/200] | Train: 0.078851 | Val: 0.078747 | L_Out: 0.038848 | L_KL: 0.112052 | MSE: 0.002595 | λ: 0.3518 | Temp: 1.792
+  Layer 04 Step [120/200] | Train: 0.077021 | Val: 0.078957 | L_Out: 0.038823 | L_KL: 0.108564 | MSE: 0.002399 | λ: 0.3547 | Temp: 1.774
+  Layer 04 Step [130/200] | Train: 0.084000 | Val: 0.083809 | L_Out: 0.041423 | L_KL: 0.120029 | MSE: 0.002396 | λ: 0.3499 | Temp: 1.756
+  Layer 04 Step [140/200] | Train: 0.082350 | Val: 0.082033 | L_Out: 0.039165 | L_KL: 0.123414 | MSE: 0.002381 | λ: 0.3336 | Temp: 1.739
+  Layer 04 Step [150/200] | Train: 0.078981 | Val: 0.079866 | L_Out: 0.039337 | L_KL: 0.118825 | MSE: 0.002234 | λ: 0.3323 | Temp: 1.721
+  Layer 04 Step [160/200] | Train: 0.077532 | Val: 0.080437 | L_Out: 0.038972 | L_KL: 0.116025 | MSE: 0.002323 | λ: 0.3341 | Temp: 1.704
+  Layer 04 Step [170/200] | Train: 0.082428 | Val: 0.079610 | L_Out: 0.039207 | L_KL: 0.129358 | MSE: 0.002447 | λ: 0.3186 | Temp: 1.687
+  Layer 04 Step [180/200] | Train: 0.077299 | Val: 0.078508 | L_Out: 0.037345 | L_KL: 0.125404 | MSE: 0.002428 | λ: 0.3082 | Temp: 1.670
+  Layer 04 Step [190/200] | Train: 0.074119 | Val: 0.080349 | L_Out: 0.038073 | L_KL: 0.116955 | MSE: 0.002210 | λ: 0.3169 | Temp: 1.654
+  Layer 04 Step [200/200] | Train: 0.077962 | Val: 0.080468 | L_Out: 0.038424 | L_KL: 0.124776 | MSE: 0.002224 | λ: 0.3124 | Temp: 1.637
+  ✓ Layer 04 calibrated (best Val Loss=0.078242)
+
+--- Calibrating layer 05 (pass 3) ---
+  Layer 05: 259 train, 28 val samples
+  Initial λ: 0.4540
+  Layer 05 Step [001/200] | Train: 0.083173 | Val: 0.096666 | L_Out: 0.044197 | L_KL: 0.085852 | MSE: 0.003224 | λ: 0.4540 | Temp: 1.998
+  Layer 05 Step [010/200] | Train: 0.093318 | Val: 0.094705 | L_Out: 0.047264 | L_KL: 0.101444 | MSE: 0.004348 | λ: 0.4599 | Temp: 1.980
+  Layer 05 Step [020/200] | Train: 0.098056 | Val: 0.096859 | L_Out: 0.050424 | L_KL: 0.103559 | MSE: 0.003997 | λ: 0.4734 | Temp: 1.960
+  Layer 05 Step [030/200] | Train: 0.096680 | Val: 0.097831 | L_Out: 0.045465 | L_KL: 0.108180 | MSE: 0.003024 | λ: 0.4469 | Temp: 1.941
+  Layer 05 Step [040/200] | Train: 0.085193 | Val: 0.093063 | L_Out: 0.041821 | L_KL: 0.097061 | MSE: 0.003312 | λ: 0.4389 | Temp: 1.922
+  Layer 05 Step [050/200] | Train: 0.095835 | Val: 0.094740 | L_Out: 0.046695 | L_KL: 0.111972 | MSE: 0.003747 | λ: 0.4279 | Temp: 1.902
+  Layer 05 Step [060/200] | Train: 0.081236 | Val: 0.094570 | L_Out: 0.040531 | L_KL: 0.095117 | MSE: 0.003406 | λ: 0.4270 | Temp: 1.883
+  Layer 05 Step [070/200] | Train: 0.086232 | Val: 0.091221 | L_Out: 0.041415 | L_KL: 0.104949 | MSE: 0.004042 | λ: 0.4108 | Temp: 1.865
+  Layer 05 Step [080/200] | Train: 0.108630 | Val: 0.088577 | L_Out: 0.050774 | L_KL: 0.140830 | MSE: 0.004551 | λ: 0.3857 | Temp: 1.846
+  Layer 05 Step [090/200] | Train: 0.088352 | Val: 0.088232 | L_Out: 0.043088 | L_KL: 0.117362 | MSE: 0.003433 | λ: 0.3764 | Temp: 1.828
+  Layer 05 Step [100/200] | Train: 0.085204 | Val: 0.088572 | L_Out: 0.042627 | L_KL: 0.113114 | MSE: 0.003652 | λ: 0.3766 | Temp: 1.810
+  Layer 05 Step [110/200] | Train: 0.089331 | Val: 0.087201 | L_Out: 0.042733 | L_KL: 0.123724 | MSE: 0.003464 | λ: 0.3610 | Temp: 1.792
+  Layer 05 Step [120/200] | Train: 0.087621 | Val: 0.090123 | L_Out: 0.043883 | L_KL: 0.121153 | MSE: 0.003198 | λ: 0.3616 | Temp: 1.774
+  Layer 05 Step [130/200] | Train: 0.087284 | Val: 0.089978 | L_Out: 0.043499 | L_KL: 0.121081 | MSE: 0.003492 | λ: 0.3604 | Temp: 1.756
+  Layer 05 Step [140/200] | Train: 0.088562 | Val: 0.087589 | L_Out: 0.043377 | L_KL: 0.125363 | MSE: 0.003843 | λ: 0.3532 | Temp: 1.739
+  Layer 05 Step [150/200] | Train: 0.092596 | Val: 0.087301 | L_Out: 0.046160 | L_KL: 0.131465 | MSE: 0.003370 | λ: 0.3522 | Temp: 1.721
+  Layer 05 Step [160/200] | Train: 0.077611 | Val: 0.088653 | L_Out: 0.039099 | L_KL: 0.109356 | MSE: 0.002781 | λ: 0.3549 | Temp: 1.704
+  Layer 05 Step [170/200] | Train: 0.091012 | Val: 0.086491 | L_Out: 0.042902 | L_KL: 0.135576 | MSE: 0.003592 | λ: 0.3356 | Temp: 1.687
+  Layer 05 Step [180/200] | Train: 0.088794 | Val: 0.087362 | L_Out: 0.044326 | L_KL: 0.132483 | MSE: 0.003477 | λ: 0.3351 | Temp: 1.670
+  Layer 05 Step [190/200] | Train: 0.081563 | Val: 0.088175 | L_Out: 0.041164 | L_KL: 0.120553 | MSE: 0.003118 | λ: 0.3383 | Temp: 1.654
+  Layer 05 Step [200/200] | Train: 0.092140 | Val: 0.087218 | L_Out: 0.044703 | L_KL: 0.140228 | MSE: 0.003388 | λ: 0.3285 | Temp: 1.637
+  ✓ Layer 05 calibrated (best Val Loss=0.086491)
+
+--- Calibrating layer 06 (pass 3) ---
+  Layer 06: 259 train, 28 val samples
+  Initial λ: 0.6363
+  Layer 06 Step [001/200] | Train: 0.130328 | Val: 0.123065 | L_Out: 0.067157 | L_KL: 0.099279 | MSE: 0.003184 | λ: 0.6363 | Temp: 1.998
+  Layer 06 Step [010/200] | Train: 0.127129 | Val: 0.122043 | L_Out: 0.061878 | L_KL: 0.102547 | MSE: 0.003837 | λ: 0.6199 | Temp: 1.980
+  Layer 06 Step [020/200] | Train: 0.106242 | Val: 0.124632 | L_Out: 0.056545 | L_KL: 0.080175 | MSE: 0.002592 | λ: 0.6626 | Temp: 1.960
+  Layer 06 Step [030/200] | Train: 0.118327 | Val: 0.126784 | L_Out: 0.056550 | L_KL: 0.093240 | MSE: 0.003056 | λ: 0.6345 | Temp: 1.941
+  Layer 06 Step [040/200] | Train: 0.137916 | Val: 0.119323 | L_Out: 0.064038 | L_KL: 0.116430 | MSE: 0.003462 | λ: 0.5923 | Temp: 1.922
+  Layer 06 Step [050/200] | Train: 0.121759 | Val: 0.116878 | L_Out: 0.060270 | L_KL: 0.103819 | MSE: 0.003363 | λ: 0.5864 | Temp: 1.902
+  Layer 06 Step [060/200] | Train: 0.117019 | Val: 0.119741 | L_Out: 0.059840 | L_KL: 0.097508 | MSE: 0.002947 | λ: 0.6000 | Temp: 1.883
+  Layer 06 Step [070/200] | Train: 0.126118 | Val: 0.113285 | L_Out: 0.056468 | L_KL: 0.116073 | MSE: 0.003517 | λ: 0.5433 | Temp: 1.865
+  Layer 06 Step [080/200] | Train: 0.114247 | Val: 0.122029 | L_Out: 0.065207 | L_KL: 0.090268 | MSE: 0.002437 | λ: 0.6328 | Temp: 1.846
+  Layer 06 Step [090/200] | Train: 0.147726 | Val: 0.114992 | L_Out: 0.063916 | L_KL: 0.132441 | MSE: 0.003494 | λ: 0.5577 | Temp: 1.828
+  Layer 06 Step [100/200] | Train: 0.112355 | Val: 0.118650 | L_Out: 0.056355 | L_KL: 0.100410 | MSE: 0.003061 | λ: 0.5595 | Temp: 1.810
+  Layer 06 Step [110/200] | Train: 0.113583 | Val: 0.120519 | L_Out: 0.059061 | L_KL: 0.097452 | MSE: 0.002456 | λ: 0.5828 | Temp: 1.792
+  Layer 06 Step [120/200] | Train: 0.137085 | Val: 0.118176 | L_Out: 0.060495 | L_KL: 0.131425 | MSE: 0.003533 | λ: 0.5215 | Temp: 1.774
+  Layer 06 Step [130/200] | Train: 0.142327 | Val: 0.125904 | L_Out: 0.066841 | L_KL: 0.144739 | MSE: 0.003739 | λ: 0.4917 | Temp: 1.756
+  Layer 06 Step [140/200] | Train: 0.125109 | Val: 0.114940 | L_Out: 0.060651 | L_KL: 0.131102 | MSE: 0.003315 | λ: 0.4771 | Temp: 1.739
+  Layer 06 Step [150/200] | Train: 0.123199 | Val: 0.121795 | L_Out: 0.062899 | L_KL: 0.126376 | MSE: 0.002868 | λ: 0.4874 | Temp: 1.721
+  Layer 06 Step [160/200] | Train: 0.119451 | Val: 0.117775 | L_Out: 0.061941 | L_KL: 0.117986 | MSE: 0.002695 | λ: 0.5062 | Temp: 1.704
+  Layer 06 Step [170/200] | Train: 0.110441 | Val: 0.134403 | L_Out: 0.064302 | L_KL: 0.091147 | MSE: 0.001977 | λ: 0.6058 | Temp: 1.687
+  Layer 06 Step [180/200] | Train: 0.143852 | Val: 0.117111 | L_Out: 0.053970 | L_KL: 0.148358 | MSE: 0.003871 | λ: 0.4848 | Temp: 1.670
+  Layer 06 Step [190/200] | Train: 0.123302 | Val: 0.120677 | L_Out: 0.061764 | L_KL: 0.126933 | MSE: 0.002820 | λ: 0.4857 | Temp: 1.654
+  Layer 06 Step [200/200] | Train: 0.132173 | Val: 0.116619 | L_Out: 0.062990 | L_KL: 0.142441 | MSE: 0.003411 | λ: 0.4640 | Temp: 1.637
+  ✓ Layer 06 calibrated (best Val Loss=0.113285)
+
+--- Calibrating layer 07 (pass 3) ---
+  Layer 07: 259 train, 28 val samples
+  Initial λ: 0.7018
+  Layer 07 Step [001/200] | Train: 0.145248 | Val: 0.130614 | L_Out: 0.060290 | L_KL: 0.121062 | MSE: 0.004400 | λ: 0.7018 | Temp: 1.998
+  Layer 07 Step [010/200] | Train: 0.141876 | Val: 0.126687 | L_Out: 0.063037 | L_KL: 0.112341 | MSE: 0.003929 | λ: 0.6314 | Temp: 1.980
+  Layer 07 Step [020/200] | Train: 0.126719 | Val: 0.130210 | L_Out: 0.067753 | L_KL: 0.093381 | MSE: 0.002553 | λ: 0.6785 | Temp: 1.960
+  Layer 07 Step [030/200] | Train: 0.144047 | Val: 0.126411 | L_Out: 0.066902 | L_KL: 0.113699 | MSE: 0.003225 | λ: 0.6335 | Temp: 1.941
+  Layer 07 Step [040/200] | Train: 0.135128 | Val: 0.123909 | L_Out: 0.062809 | L_KL: 0.114165 | MSE: 0.003167 | λ: 0.5918 | Temp: 1.922
+  Layer 07 Step [050/200] | Train: 0.124916 | Val: 0.127126 | L_Out: 0.065823 | L_KL: 0.099852 | MSE: 0.003164 | λ: 0.6255 | Temp: 1.902
+  Layer 07 Step [060/200] | Train: 0.139227 | Val: 0.121038 | L_Out: 0.061118 | L_KL: 0.124873 | MSE: 0.003816 | λ: 0.5575 | Temp: 1.883
+  Layer 07 Step [070/200] | Train: 0.115347 | Val: 0.121341 | L_Out: 0.059580 | L_KL: 0.100035 | MSE: 0.002708 | λ: 0.5765 | Temp: 1.865
+  Layer 07 Step [080/200] | Train: 0.125254 | Val: 0.118339 | L_Out: 0.057803 | L_KL: 0.116995 | MSE: 0.003257 | λ: 0.5353 | Temp: 1.846
+  Layer 07 Step [090/200] | Train: 0.141264 | Val: 0.122830 | L_Out: 0.069985 | L_KL: 0.133159 | MSE: 0.003299 | λ: 0.5304 | Temp: 1.828
+  Layer 07 Step [100/200] | Train: 0.124780 | Val: 0.127975 | L_Out: 0.067248 | L_KL: 0.108462 | MSE: 0.002632 | λ: 0.5752 | Temp: 1.810
+  Layer 07 Step [110/200] | Train: 0.150930 | Val: 0.125732 | L_Out: 0.071320 | L_KL: 0.138399 | MSE: 0.003530 | λ: 0.5453 | Temp: 1.792
+  Layer 07 Step [120/200] | Train: 0.135331 | Val: 0.119208 | L_Out: 0.064583 | L_KL: 0.129748 | MSE: 0.003236 | λ: 0.5215 | Temp: 1.774
+  Layer 07 Step [130/200] | Train: 0.126208 | Val: 0.117769 | L_Out: 0.061969 | L_KL: 0.123179 | MSE: 0.003447 | λ: 0.5123 | Temp: 1.756
+  Layer 07 Step [140/200] | Train: 0.133364 | Val: 0.120456 | L_Out: 0.066441 | L_KL: 0.130633 | MSE: 0.002948 | λ: 0.5105 | Temp: 1.739
+  Layer 07 Step [150/200] | Train: 0.132223 | Val: 0.122180 | L_Out: 0.067437 | L_KL: 0.126920 | MSE: 0.002902 | λ: 0.5209 | Temp: 1.721
+  Layer 07 Step [160/200] | Train: 0.124447 | Val: 0.126831 | L_Out: 0.067327 | L_KL: 0.109658 | MSE: 0.002508 | λ: 0.5674 | Temp: 1.704
+  Layer 07 Step [170/200] | Train: 0.145412 | Val: 0.123969 | L_Out: 0.068992 | L_KL: 0.134677 | MSE: 0.003085 | λ: 0.5399 | Temp: 1.687
+  Layer 07 Step [180/200] | Train: 0.141466 | Val: 0.123993 | L_Out: 0.069094 | L_KL: 0.134058 | MSE: 0.002973 | λ: 0.5276 | Temp: 1.670
+  Layer 07 Step [190/200] | Train: 0.128798 | Val: 0.122275 | L_Out: 0.061858 | L_KL: 0.126869 | MSE: 0.002856 | λ: 0.5076 | Temp: 1.654
+  Layer 07 Step [200/200] | Train: 0.132365 | Val: 0.122755 | L_Out: 0.065890 | L_KL: 0.130958 | MSE: 0.003058 | λ: 0.5054 | Temp: 1.637
+  ✓ Layer 07 calibrated (best Val Loss=0.117769)
+
+--- Calibrating layer 08 (pass 3) ---
+  Layer 08: 259 train, 28 val samples
+  Initial λ: 0.5246
+  Layer 08 Step [001/200] | Train: 0.106157 | Val: 0.098605 | L_Out: 0.055405 | L_KL: 0.096751 | MSE: 0.003958 | λ: 0.5246 | Temp: 1.998
+  Layer 08 Step [010/200] | Train: 0.098134 | Val: 0.108016 | L_Out: 0.055250 | L_KL: 0.081753 | MSE: 0.003409 | λ: 0.6002 | Temp: 1.980
+  Layer 08 Step [020/200] | Train: 0.102339 | Val: 0.107797 | L_Out: 0.052910 | L_KL: 0.082356 | MSE: 0.003652 | λ: 0.6213 | Temp: 1.960
+  Layer 08 Step [030/200] | Train: 0.099028 | Val: 0.109860 | L_Out: 0.049774 | L_KL: 0.079273 | MSE: 0.003320 | λ: 0.6246 | Temp: 1.941
+  Layer 08 Step [040/200] | Train: 0.114164 | Val: 0.103580 | L_Out: 0.051721 | L_KL: 0.099972 | MSE: 0.003916 | λ: 0.5710 | Temp: 1.922
+  Layer 08 Step [050/200] | Train: 0.089785 | Val: 0.100963 | L_Out: 0.042732 | L_KL: 0.082408 | MSE: 0.003448 | λ: 0.5448 | Temp: 1.902
+  Layer 08 Step [060/200] | Train: 0.109427 | Val: 0.100249 | L_Out: 0.055046 | L_KL: 0.099827 | MSE: 0.003921 | λ: 0.5481 | Temp: 1.883
+  Layer 08 Step [070/200] | Train: 0.096390 | Val: 0.101785 | L_Out: 0.048919 | L_KL: 0.086613 | MSE: 0.003697 | λ: 0.5564 | Temp: 1.865
+  Layer 08 Step [080/200] | Train: 0.096711 | Val: 0.113851 | L_Out: 0.056731 | L_KL: 0.071849 | MSE: 0.002578 | λ: 0.6730 | Temp: 1.846
+  Layer 08 Step [090/200] | Train: 0.106414 | Val: 0.107121 | L_Out: 0.047038 | L_KL: 0.088224 | MSE: 0.003514 | λ: 0.6031 | Temp: 1.828
+  Layer 08 Step [100/200] | Train: 0.105121 | Val: 0.101510 | L_Out: 0.045971 | L_KL: 0.098078 | MSE: 0.003367 | λ: 0.5359 | Temp: 1.810
+  Layer 08 Step [110/200] | Train: 0.105525 | Val: 0.097893 | L_Out: 0.047921 | L_KL: 0.107488 | MSE: 0.003942 | λ: 0.4909 | Temp: 1.792
+  Layer 08 Step [120/200] | Train: 0.099763 | Val: 0.093111 | L_Out: 0.045624 | L_KL: 0.110292 | MSE: 0.003676 | λ: 0.4523 | Temp: 1.774
+  Layer 08 Step [130/200] | Train: 0.091037 | Val: 0.095272 | L_Out: 0.046873 | L_KL: 0.097649 | MSE: 0.003208 | λ: 0.4661 | Temp: 1.756
+  Layer 08 Step [140/200] | Train: 0.089342 | Val: 0.095388 | L_Out: 0.043362 | L_KL: 0.098639 | MSE: 0.003213 | λ: 0.4529 | Temp: 1.739
+  Layer 08 Step [150/200] | Train: 0.091958 | Val: 0.097049 | L_Out: 0.047743 | L_KL: 0.097633 | MSE: 0.003502 | λ: 0.4709 | Temp: 1.721
+  Layer 08 Step [160/200] | Train: 0.085466 | Val: 0.096305 | L_Out: 0.041586 | L_KL: 0.093175 | MSE: 0.003047 | λ: 0.4586 | Temp: 1.704
+  Layer 08 Step [170/200] | Train: 0.085562 | Val: 0.096660 | L_Out: 0.041815 | L_KL: 0.095386 | MSE: 0.003061 | λ: 0.4485 | Temp: 1.687
+  Layer 08 Step [180/200] | Train: 0.102597 | Val: 0.093249 | L_Out: 0.047271 | L_KL: 0.123356 | MSE: 0.003469 | λ: 0.4159 | Temp: 1.670
+  Layer 08 Step [190/200] | Train: 0.098123 | Val: 0.093890 | L_Out: 0.048931 | L_KL: 0.118290 | MSE: 0.003566 | λ: 0.4148 | Temp: 1.654
+  Layer 08 Step [200/200] | Train: 0.089818 | Val: 0.094263 | L_Out: 0.044578 | L_KL: 0.109077 | MSE: 0.003319 | λ: 0.4117 | Temp: 1.637
+  ✓ Layer 08 calibrated (best Val Loss=0.093111)
+
+--- Calibrating layer 09 (pass 3) ---
+  Layer 09: 259 train, 28 val samples
+  Initial λ: 0.8471
+  Layer 09 Step [001/200] | Train: 0.107224 | Val: 0.150377 | L_Out: 0.055504 | L_KL: 0.061058 | MSE: 0.003223 | λ: 0.8471 | Temp: 1.998
+  Layer 09 Step [010/200] | Train: 0.120590 | Val: 0.127698 | L_Out: 0.062345 | L_KL: 0.068761 | MSE: 0.003488 | λ: 0.8769 | Temp: 1.980
+  Layer 09 Step [020/200] | Train: 0.123603 | Val: 0.121902 | L_Out: 0.057881 | L_KL: 0.074950 | MSE: 0.003308 | λ: 0.8246 | Temp: 1.960
+  Layer 09 Step [030/200] | Train: 0.124215 | Val: 0.136493 | L_Out: 0.072248 | L_KL: 0.063022 | MSE: 0.003054 | λ: 0.9855 | Temp: 1.941
+  Layer 09 Step [040/200] | Train: 0.134931 | Val: 0.135436 | L_Out: 0.060982 | L_KL: 0.075038 | MSE: 0.003382 | λ: 0.8991 | Temp: 1.922
+  Layer 09 Step [050/200] | Train: 0.138186 | Val: 0.131542 | L_Out: 0.068520 | L_KL: 0.077486 | MSE: 0.003511 | λ: 0.8917 | Temp: 1.902
+  Layer 09 Step [060/200] | Train: 0.136080 | Val: 0.125322 | L_Out: 0.059371 | L_KL: 0.086027 | MSE: 0.003720 | λ: 0.7909 | Temp: 1.883
+  Layer 09 Step [070/200] | Train: 0.139297 | Val: 0.126006 | L_Out: 0.066622 | L_KL: 0.091887 | MSE: 0.004074 | λ: 0.7580 | Temp: 1.865
+  Layer 09 Step [080/200] | Train: 0.116794 | Val: 0.124927 | L_Out: 0.060767 | L_KL: 0.073917 | MSE: 0.003054 | λ: 0.7900 | Temp: 1.846
+  Layer 09 Step [090/200] | Train: 0.137144 | Val: 0.115089 | L_Out: 0.056269 | L_KL: 0.102369 | MSE: 0.004292 | λ: 0.6699 | Temp: 1.828
+  Layer 09 Step [100/200] | Train: 0.112347 | Val: 0.123228 | L_Out: 0.061506 | L_KL: 0.075899 | MSE: 0.003285 | λ: 0.7401 | Temp: 1.810
+  Layer 09 Step [110/200] | Train: 0.130767 | Val: 0.115567 | L_Out: 0.055971 | L_KL: 0.101061 | MSE: 0.004251 | λ: 0.6470 | Temp: 1.792
+  Layer 09 Step [120/200] | Train: 0.109303 | Val: 0.127040 | L_Out: 0.064878 | L_KL: 0.068667 | MSE: 0.002755 | λ: 0.7959 | Temp: 1.774
+  Layer 09 Step [130/200] | Train: 0.110689 | Val: 0.125051 | L_Out: 0.053651 | L_KL: 0.071665 | MSE: 0.003040 | λ: 0.7723 | Temp: 1.756
+  Layer 09 Step [140/200] | Train: 0.136171 | Val: 0.114830 | L_Out: 0.054334 | L_KL: 0.105971 | MSE: 0.003643 | λ: 0.6425 | Temp: 1.739
+  Layer 09 Step [150/200] | Train: 0.112479 | Val: 0.115031 | L_Out: 0.055635 | L_KL: 0.088474 | MSE: 0.003341 | λ: 0.6357 | Temp: 1.721
+  Layer 09 Step [160/200] | Train: 0.112740 | Val: 0.119534 | L_Out: 0.060439 | L_KL: 0.082278 | MSE: 0.002871 | λ: 0.6851 | Temp: 1.704
+  Layer 09 Step [170/200] | Train: 0.120660 | Val: 0.117208 | L_Out: 0.056690 | L_KL: 0.093372 | MSE: 0.003156 | λ: 0.6461 | Temp: 1.687
+  Layer 09 Step [180/200] | Train: 0.121487 | Val: 0.117376 | L_Out: 0.060542 | L_KL: 0.094324 | MSE: 0.003198 | λ: 0.6440 | Temp: 1.670
+  Layer 09 Step [190/200] | Train: 0.122738 | Val: 0.111532 | L_Out: 0.053798 | L_KL: 0.107051 | MSE: 0.003878 | λ: 0.5733 | Temp: 1.654
+  Layer 09 Step [200/200] | Train: 0.102360 | Val: 0.127335 | L_Out: 0.062189 | L_KL: 0.070075 | MSE: 0.002402 | λ: 0.7304 | Temp: 1.637
+  ✓ Layer 09 calibrated (best Val Loss=0.111532)
+
+--- Calibrating layer 10 (pass 3) ---
+  Layer 10: 259 train, 28 val samples
+  Initial λ: 0.6773
+  Layer 10 Step [001/200] | Train: 0.101132 | Val: 0.093385 | L_Out: 0.045712 | L_KL: 0.081827 | MSE: 0.005514 | λ: 0.6773 | Temp: 1.998
+  Layer 10 Step [010/200] | Train: 0.086609 | Val: 0.096558 | L_Out: 0.045289 | L_KL: 0.061009 | MSE: 0.004177 | λ: 0.7098 | Temp: 1.980
+  Layer 10 Step [020/200] | Train: 0.084218 | Val: 0.099375 | L_Out: 0.042641 | L_KL: 0.058575 | MSE: 0.004035 | λ: 0.7189 | Temp: 1.960
+  Layer 10 Step [030/200] | Train: 0.097247 | Val: 0.098690 | L_Out: 0.049620 | L_KL: 0.066251 | MSE: 0.003780 | λ: 0.7339 | Temp: 1.941
+  Layer 10 Step [040/200] | Train: 0.096274 | Val: 0.088559 | L_Out: 0.039553 | L_KL: 0.077283 | MSE: 0.004842 | λ: 0.6229 | Temp: 1.922
+  Layer 10 Step [050/200] | Train: 0.092366 | Val: 0.085271 | L_Out: 0.042004 | L_KL: 0.080856 | MSE: 0.005199 | λ: 0.5712 | Temp: 1.902
+  Layer 10 Step [060/200] | Train: 0.077328 | Val: 0.088627 | L_Out: 0.041633 | L_KL: 0.062493 | MSE: 0.004247 | λ: 0.6187 | Temp: 1.883
+  Layer 10 Step [070/200] | Train: 0.075808 | Val: 0.089864 | L_Out: 0.039637 | L_KL: 0.058463 | MSE: 0.003894 | λ: 0.6483 | Temp: 1.865
+  Layer 10 Step [080/200] | Train: 0.086914 | Val: 0.085711 | L_Out: 0.038320 | L_KL: 0.074950 | MSE: 0.004575 | λ: 0.5798 | Temp: 1.846
+  Layer 10 Step [090/200] | Train: 0.086609 | Val: 0.088303 | L_Out: 0.044509 | L_KL: 0.072609 | MSE: 0.004026 | λ: 0.5964 | Temp: 1.828
+  Layer 10 Step [100/200] | Train: 0.075145 | Val: 0.092057 | L_Out: 0.039666 | L_KL: 0.059489 | MSE: 0.003689 | λ: 0.6316 | Temp: 1.810
+  Layer 10 Step [110/200] | Train: 0.090544 | Val: 0.088981 | L_Out: 0.040931 | L_KL: 0.078553 | MSE: 0.004658 | λ: 0.5763 | Temp: 1.792
+  Layer 10 Step [120/200] | Train: 0.085865 | Val: 0.086946 | L_Out: 0.039274 | L_KL: 0.080841 | MSE: 0.004705 | λ: 0.5311 | Temp: 1.774
+  Layer 10 Step [130/200] | Train: 0.079025 | Val: 0.086161 | L_Out: 0.040179 | L_KL: 0.073147 | MSE: 0.004090 | λ: 0.5402 | Temp: 1.756
+  Layer 10 Step [140/200] | Train: 0.075976 | Val: 0.086880 | L_Out: 0.037145 | L_KL: 0.071884 | MSE: 0.004235 | λ: 0.5285 | Temp: 1.739
+  Layer 10 Step [150/200] | Train: 0.076165 | Val: 0.086204 | L_Out: 0.037197 | L_KL: 0.073739 | MSE: 0.003859 | λ: 0.5164 | Temp: 1.721
+  Layer 10 Step [160/200] | Train: 0.080034 | Val: 0.087837 | L_Out: 0.041228 | L_KL: 0.075142 | MSE: 0.004587 | λ: 0.5326 | Temp: 1.704
+  Layer 10 Step [170/200] | Train: 0.080487 | Val: 0.090395 | L_Out: 0.042082 | L_KL: 0.072115 | MSE: 0.004009 | λ: 0.5580 | Temp: 1.687
+  Layer 10 Step [180/200] | Train: 0.083740 | Val: 0.092161 | L_Out: 0.042800 | L_KL: 0.073364 | MSE: 0.003719 | λ: 0.5707 | Temp: 1.670
+  Layer 10 Step [190/200] | Train: 0.092903 | Val: 0.088849 | L_Out: 0.042071 | L_KL: 0.089067 | MSE: 0.004352 | λ: 0.5215 | Temp: 1.654
+  Layer 10 Step [200/200] | Train: 0.082975 | Val: 0.088533 | L_Out: 0.040255 | L_KL: 0.081913 | MSE: 0.003848 | λ: 0.5065 | Temp: 1.637
+  ✓ Layer 10 calibrated (best Val Loss=0.085271)
+
+--- Calibrating layer 11 (pass 3) ---
+  Layer 11: 259 train, 28 val samples
+  Initial λ: 0.9030
+  Layer 11 Step [001/200] | Train: 0.059338 | Val: 0.076296 | L_Out: 0.033905 | L_KL: 0.028164 | MSE: 0.012627 | λ: 0.9030 | Temp: 1.998
+  Layer 11 Step [010/200] | Train: 0.072079 | Val: 0.075318 | L_Out: 0.036468 | L_KL: 0.039436 | MSE: 0.013591 | λ: 0.9139 | Temp: 1.980
+  Layer 11 Step [020/200] | Train: 0.087688 | Val: 0.076222 | L_Out: 0.044381 | L_KL: 0.047388 | MSE: 0.014301 | λ: 0.9252 | Temp: 1.960
+  Layer 11 Step [030/200] | Train: 0.081116 | Val: 0.075366 | L_Out: 0.037144 | L_KL: 0.047526 | MSE: 0.012811 | λ: 0.8534 | Temp: 1.941
+  Layer 11 Step [040/200] | Train: 0.065914 | Val: 0.079809 | L_Out: 0.036506 | L_KL: 0.034461 | MSE: 0.011453 | λ: 0.9564 | Temp: 1.922
+  Layer 11 Step [050/200] | Train: 0.081839 | Val: 0.074158 | L_Out: 0.037495 | L_KL: 0.046367 | MSE: 0.012515 | λ: 0.8825 | Temp: 1.902
+  Layer 11 Step [060/200] | Train: 0.076500 | Val: 0.073880 | L_Out: 0.036882 | L_KL: 0.044893 | MSE: 0.011803 | λ: 0.8520 | Temp: 1.883
+  Layer 11 Step [070/200] | Train: 0.056485 | Val: 0.076811 | L_Out: 0.030503 | L_KL: 0.030494 | MSE: 0.011034 | λ: 0.9262 | Temp: 1.865
+  Layer 11 Step [080/200] | Train: 0.071490 | Val: 0.073550 | L_Out: 0.033331 | L_KL: 0.041201 | MSE: 0.011787 | λ: 0.8676 | Temp: 1.846
+  Layer 11 Step [090/200] | Train: 0.069405 | Val: 0.076891 | L_Out: 0.037350 | L_KL: 0.036948 | MSE: 0.011639 | λ: 0.9392 | Temp: 1.828
+  Layer 11 Step [100/200] | Train: 0.073907 | Val: 0.072558 | L_Out: 0.032486 | L_KL: 0.044101 | MSE: 0.011595 | λ: 0.8379 | Temp: 1.810
+  Layer 11 Step [110/200] | Train: 0.073012 | Val: 0.070978 | L_Out: 0.033723 | L_KL: 0.046887 | MSE: 0.012395 | λ: 0.7786 | Temp: 1.792
+  Layer 11 Step [120/200] | Train: 0.079138 | Val: 0.069598 | L_Out: 0.037513 | L_KL: 0.053462 | MSE: 0.012984 | λ: 0.7401 | Temp: 1.774
+  Layer 11 Step [130/200] | Train: 0.058430 | Val: 0.074186 | L_Out: 0.031942 | L_KL: 0.035789 | MSE: 0.011300 | λ: 0.8163 | Temp: 1.756
+  Layer 11 Step [140/200] | Train: 0.062440 | Val: 0.074897 | L_Out: 0.031357 | L_KL: 0.038077 | MSE: 0.011701 | λ: 0.8199 | Temp: 1.739
+  Layer 11 Step [150/200] | Train: 0.068611 | Val: 0.075585 | L_Out: 0.034542 | L_KL: 0.041552 | MSE: 0.011081 | λ: 0.8256 | Temp: 1.721
+  Layer 11 Step [160/200] | Train: 0.076111 | Val: 0.074376 | L_Out: 0.036242 | L_KL: 0.048291 | MSE: 0.012944 | λ: 0.7880 | Temp: 1.704
+  Layer 11 Step [170/200] | Train: 0.069151 | Val: 0.074095 | L_Out: 0.033532 | L_KL: 0.045199 | MSE: 0.011484 | λ: 0.7650 | Temp: 1.687
+  Layer 11 Step [180/200] | Train: 0.065771 | Val: 0.074816 | L_Out: 0.033105 | L_KL: 0.042703 | MSE: 0.010548 | λ: 0.7701 | Temp: 1.670
+  Layer 11 Step [190/200] | Train: 0.082444 | Val: 0.072801 | L_Out: 0.038414 | L_KL: 0.057174 | MSE: 0.012504 | λ: 0.7210 | Temp: 1.654
+  Layer 11 Step [200/200] | Train: 0.060176 | Val: 0.073399 | L_Out: 0.030316 | L_KL: 0.041416 | MSE: 0.010585 | λ: 0.7265 | Temp: 1.637
+  ✓ Layer 11 calibrated (best Val Loss=0.069598)
+
+  Pass 3 completed. Evaluating current model on calibration data...
+  ✓ New best PPL: 25.92
+
+  Restoring best scales from pass with PPL 25.92
+
+✓ Sequential calibration completed with 3 passes.
+  Best validation PPL: 25.92
+Model dtype: torch.float32
+Max logit diff (FP path): 0.000229
+✓ FP32: Models match perfectly
+✓ Scales saved to calibration_scales_sequential.pkl
+
+Calibrated 4-bit Perplexity (sequential, dynamic λ, QKV-ONLY + FP32 Wo): 24.21
+
+======================================================================
+FINAL SUMMARY
+======================================================================
+| Model                |   Perplexity | vs Baseline |   Recovery |
+|----------------------|--------------|------------|------------|
+| Baseline             |        23.39 |       0.00 |          - |
+| Unoptimized 4-bit    |        25.57 |     +2.18 |       0.0% |
+| AP-Quant Sequential  |        24.21 |     +0.82 |      62.3% |
+======================================================================
+
+ Recovery: 62.3% of quantization gap recovered!
+   Baseline: 23.39 → Unopt: 25.57 → Sequential: 24.21
+
+======================================================================
+PIPELINE COMPLETE
+======================================================================

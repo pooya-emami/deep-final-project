@@ -1,0 +1,552 @@
+Warning You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+======================================================================
+AP-QUANT JOINT CALIBRATION (ALL LAYERS, FIXED 4-BIT, DYNAMIC λ, QKV-ONLY + FP32 Wo, GPT2+LLaMA)
+SEED 42
+======================================================================
+Device cuda
+
+config.json 100%
+ 889889 [00000000, 65.5kBs]
+tokenizer_config.json 
+ 50.6k [00000000, 4.92MBs]
+tokenizer.json 100%
+ 17.2M17.2M [00000000, 86.1MBs]
+special_tokens_map.json 100%
+ 459459 [00000000, 59.8kBs]
+
+
+Loading open-platypus dataset...
+
+README.md 
+ 5.34k [00000000, 541kBs]
+datatrain-00000-of-00001-4fe2df04669d16(…) 100%
+ 15.6M15.6M [00000000, 77.8MBs]
+Generating train split 100%
+ 2492624926 [00000000, 124767.35 exampless]
+
+Calibration chunks 285 → 107 batches (batch_size=8)
+Evaluation chunks 288 → 99 batches
+
+======================================================================
+STEP 1 FP32 BASELINE
+======================================================================
+
+model.safetensors 100%
+ 2.47G2.47G [00150000, 766MBs]
+Loading weights 100%
+ 146146 [00000000, 647.90its, Materializing param=model.norm.weight]
+generation_config.json 100%
+ 230230 [00000000, 24.5kBs]
+
+FP32 Perplexity 6.66
+
+======================================================================
+STEP 2 UNOPTIMIZED 4-BIT BASELINE (QKV-ONLY + FP32 Wo)
+======================================================================
+
+Loading weights 100%
+ 146146 [00000000, 676.37its, Materializing param=model.norm.weight]
+
+  LLaMA layer 00 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 01 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 02 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 03 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 04 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 05 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 06 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 07 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 08 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 09 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 10 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 11 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 12 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 13 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 14 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 15 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+Unoptimized 4-bit Perplexity (llama) 7.02
+
+======================================================================
+STEP 4 SEQUENTIAL AP-QUANT CALIBRATION (OPTIMIZED)
+======================================================================
+
+Loading weights 100%
+ 146146 [00000000, 760.16its, Materializing param=model.norm.weight]
+
+  LLaMA layer 00 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 01 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 02 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 03 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 04 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 05 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 06 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 07 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 08 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 09 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 10 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 11 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 12 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 13 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 14 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  LLaMA layer 15 attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+
+======================================================================
+AP-QUANT SEQUENTIAL CALIBRATION (LLAMA, 4-BIT, DYNAMIC λ, QKV-ONLY + FP32 Wo)
+Stepslayer 200, Batch size 4, Passes 1
+Full validation set checkpointing ENABLED
+======================================================================
+
+  Initializing scales with RTN...
+
+======================================================================
+SEQUENTIAL CALIBRATION PASS 11
+======================================================================
+
+--- Calibrating layer 00 (pass 1) ---
+  Layer 00 257 train, 28 val samples
+  Initial λ 1.2524
+
+tmpipykernel_592894284792.py749 UserWarning Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at pytorchtorchcsrcautogradgeneratedpython_variable_methods.cpp836.)
+  lam_val = float(l_out_0  (l_kl_0 + 1e-8))
+
+  Layer 00 Step [001200]  Train 0.183594  Val 0.194022  L_Out 0.092285  L_KL 0.072754  MSE 0.000069  λ 1.2524  Temp 1.998
+  Layer 00 Step [010200]  Train 0.187500  Val 0.202811  L_Out 0.100098  L_KL 0.070312  MSE 0.000068  λ 1.3380  Temp 1.980
+  Layer 00 Step [020200]  Train 0.201172  Val 0.197457  L_Out 0.092773  L_KL 0.081055  MSE 0.000074  λ 1.2413  Temp 1.960
+  Layer 00 Step [030200]  Train 0.204102  Val 0.198800  L_Out 0.101562  L_KL 0.082520  MSE 0.000073  λ 1.2360  Temp 1.941
+  Layer 00 Step [040200]  Train 0.205078  Val 0.190081  L_Out 0.091309  L_KL 0.091797  MSE 0.000058  λ 1.1154  Temp 1.922
+  Layer 00 Step [050200]  Train 0.164062  Val 0.193534  L_Out 0.083496  L_KL 0.072266  MSE 0.000090  λ 1.1354  Temp 1.902
+  Layer 00 Step [060200]  Train 0.155273  Val 0.199201  L_Out 0.080078  L_KL 0.066406  MSE 0.000099  λ 1.1706  Temp 1.883
+  Layer 00 Step [070200]  Train 0.192383  Val 0.193621  L_Out 0.089844  L_KL 0.088379  MSE 0.000076  λ 1.0936  Temp 1.865
+  Layer 00 Step [080200]  Train 0.201172  Val 0.197614  L_Out 0.102051  L_KL 0.090820  MSE 0.000061  λ 1.1086  Temp 1.846
+  Layer 00 Step [090200]  Train 0.192383  Val 0.197614  L_Out 0.094727  L_KL 0.087402  MSE 0.000074  λ 1.0962  Temp 1.828
+  Layer 00 Step [100200]  Train 0.207031  Val 0.191162  L_Out 0.094238  L_KL 0.103516  MSE 0.000059  λ 1.0033  Temp 1.810
+  Layer 00 Step [110200]  Train 0.195312  Val 0.195940  L_Out 0.100098  L_KL 0.095703  MSE 0.000065  λ 1.0246  Temp 1.792
+  Layer 00 Step [120200]  Train 0.199219  Val 0.191092  L_Out 0.093262  L_KL 0.103516  MSE 0.000056  λ 0.9628  Temp 1.774
+  Layer 00 Step [130200]  Train 0.205078  Val 0.190255  L_Out 0.099609  L_KL 0.108887  MSE 0.000060  λ 0.9388  Temp 1.756
+  Layer 00 Step [140200]  Train 0.187500  Val 0.195836  L_Out 0.097168  L_KL 0.095703  MSE 0.000069  λ 0.9770  Temp 1.739
+  Layer 00 Step [150200]  Train 0.188477  Val 0.190796  L_Out 0.087402  L_KL 0.103516  MSE 0.000072  λ 0.9107  Temp 1.721
+  Layer 00 Step [160200]  Train 0.183594  Val 0.193952  L_Out 0.092285  L_KL 0.100586  MSE 0.000062  λ 0.9141  Temp 1.704
+  Layer 00 Step [170200]  Train 0.184570  Val 0.193115  L_Out 0.090820  L_KL 0.102539  MSE 0.000091  λ 0.8999  Temp 1.687
+  Layer 00 Step [180200]  Train 0.183594  Val 0.193028  L_Out 0.089844  L_KL 0.104492  MSE 0.000069  λ 0.8799  Temp 1.670
+  Layer 00 Step [190200]  Train 0.199219  Val 0.195312  L_Out 0.099609  L_KL 0.112305  MSE 0.000061  λ 0.8834  Temp 1.654
+  Layer 00 Step [200200]  Train 0.197266  Val 0.196760  L_Out 0.098145  L_KL 0.112305  MSE 0.000066  λ 0.8787  Temp 1.637
+  ✓ Layer 00 calibrated (best Val Loss=0.190081)
+
+--- Calibrating layer 01 (pass 1) ---
+  Layer 01 257 train, 28 val samples
+  Initial λ 0.6689
+  Layer 01 Step [001200]  Train 0.121094  Val 0.120876  L_Out 0.059570  L_KL 0.092285  MSE 0.000088  λ 0.6689  Temp 1.998
+  Layer 01 Step [010200]  Train 0.121582  Val 0.118373  L_Out 0.056396  L_KL 0.097656  MSE 0.000092  λ 0.6232  Temp 1.980
+  Layer 01 Step [020200]  Train 0.122070  Val 0.121094  L_Out 0.063477  L_KL 0.094727  MSE 0.000077  λ 0.6467  Temp 1.960
+  Layer 01 Step [030200]  Train 0.120117  Val 0.123125  L_Out 0.062012  L_KL 0.090820  MSE 0.000080  λ 0.6647  Temp 1.941
+  Layer 01 Step [040200]  Train 0.122070  Val 0.118478  L_Out 0.054688  L_KL 0.100586  MSE 0.000099  λ 0.6042  Temp 1.922
+  Layer 01 Step [050200]  Train 0.111328  Val 0.119123  L_Out 0.055420  L_KL 0.092773  MSE 0.000085  λ 0.6008  Temp 1.902
+  Layer 01 Step [060200]  Train 0.111328  Val 0.117911  L_Out 0.054199  L_KL 0.095215  MSE 0.000087  λ 0.5850  Temp 1.883
+  Layer 01 Step [070200]  Train 0.103516  Val 0.113909  L_Out 0.047852  L_KL 0.096680  MSE 0.000099  λ 0.5400  Temp 1.865
+  Layer 01 Step [080200]  Train 0.119629  Val 0.119568  L_Out 0.064941  L_KL 0.101562  MSE 0.000078  λ 0.5897  Temp 1.846
+  Layer 01 Step [090200]  Train 0.103027  Val 0.119455  L_Out 0.050781  L_KL 0.088379  MSE 0.000102  λ 0.5821  Temp 1.828
+  Layer 01 Step [100200]  Train 0.122559  Val 0.126657  L_Out 0.066895  L_KL 0.094727  MSE 0.000078  λ 0.6442  Temp 1.810
+  Layer 01 Step [110200]  Train 0.125000  Val 0.127468  L_Out 0.062500  L_KL 0.097168  MSE 0.000087  λ 0.6437  Temp 1.792
+  Layer 01 Step [120200]  Train 0.130859  Val 0.126238  L_Out 0.063477  L_KL 0.104980  MSE 0.000078  λ 0.6242  Temp 1.774
+  Layer 01 Step [130200]  Train 0.101562  Val 0.128427  L_Out 0.052246  L_KL 0.079590  MSE 0.000128  λ 0.6403  Temp 1.756
+  Layer 01 Step [140200]  Train 0.131836  Val 0.128540  L_Out 0.065430  L_KL 0.103516  MSE 0.000081  λ 0.6362  Temp 1.739
+  Layer 01 Step [150200]  Train 0.102539  Val 0.118304  L_Out 0.041016  L_KL 0.096680  MSE 0.000092  λ 0.5302  Temp 1.721
+  Layer 01 Step [160200]  Train 0.113281  Val 0.124634  L_Out 0.061768  L_KL 0.097168  MSE 0.000075  λ 0.5829  Temp 1.704
+  Layer 01 Step [170200]  Train 0.125977  Val 0.127232  L_Out 0.064453  L_KL 0.104980  MSE 0.000077  λ 0.5985  Temp 1.687
+  Layer 01 Step [180200]  Train 0.127930  Val 0.128627  L_Out 0.064453  L_KL 0.105469  MSE 0.000076  λ 0.6048  Temp 1.670
+  Layer 01 Step [190200]  Train 0.142578  Val 0.124913  L_Out 0.066406  L_KL 0.125000  MSE 0.000091  λ 0.5680  Temp 1.654
+  Layer 01 Step [200200]  Train 0.129883  Val 0.122628  L_Out 0.062012  L_KL 0.119141  MSE 0.000080  λ 0.5443  Temp 1.637
+  ✓ Layer 01 calibrated (best Val Loss=0.113909)
+
+--- Calibrating layer 02 (pass 1) ---
+  Layer 02 257 train, 28 val samples
+  Initial λ 0.5732
+  Layer 02 Step [001200]  Train 0.174805  Val 0.185652  L_Out 0.091797  L_KL 0.144531  MSE 0.000175  λ 0.5732  Temp 1.998
+  Layer 02 Step [010200]  Train 0.199219  Val 0.191092  L_Out 0.104492  L_KL 0.166016  MSE 0.000198  λ 0.6013  Temp 1.980
+  Layer 02 Step [020200]  Train 0.175781  Val 0.188825  L_Out 0.084473  L_KL 0.151367  MSE 0.000152  λ 0.5797  Temp 1.960
+  Layer 02 Step [030200]  Train 0.220703  Val 0.182722  L_Out 0.101562  L_KL 0.207031  MSE 0.000242  λ 0.5351  Temp 1.941
+  Layer 02 Step [040200]  Train 0.167969  Val 0.195382  L_Out 0.093262  L_KL 0.138672  MSE 0.000181  λ 0.6038  Temp 1.922
+  Layer 02 Step [050200]  Train 0.193359  Val 0.187640  L_Out 0.088379  L_KL 0.175781  MSE 0.000168  λ 0.5533  Temp 1.902
+  Layer 02 Step [060200]  Train 0.208984  Val 0.185198  L_Out 0.100586  L_KL 0.196289  MSE 0.000195  λ 0.5329  Temp 1.883
+  Layer 02 Step [070200]  Train 0.199219  Val 0.191232  L_Out 0.104492  L_KL 0.177734  MSE 0.000217  λ 0.5604  Temp 1.865
+  Layer 02 Step [080200]  Train 0.185547  Val 0.198138  L_Out 0.097656  L_KL 0.156250  MSE 0.000164  λ 0.5927  Temp 1.846
+  Layer 02 Step [090200]  Train 0.229492  Val 0.189139  L_Out 0.102539  L_KL 0.212891  MSE 0.000243  λ 0.5372  Temp 1.828
+  Layer 02 Step [100200]  Train 0.172852  Val 0.189907  L_Out 0.086426  L_KL 0.162109  MSE 0.000176  λ 0.5352  Temp 1.810
+  Layer 02 Step [110200]  Train 0.206055  Val 0.182129  L_Out 0.092773  L_KL 0.210938  MSE 0.000230  λ 0.4875  Temp 1.792
+  Layer 02 Step [120200]  Train 0.196289  Val 0.181257  L_Out 0.095703  L_KL 0.205078  MSE 0.000204  λ 0.4771  Temp 1.774
+  Layer 02 Step [130200]  Train 0.177734  Val 0.185547  L_Out 0.092285  L_KL 0.177734  MSE 0.000174  λ 0.4982  Temp 1.756
+  Layer 02 Step [140200]  Train 0.181641  Val 0.190778  L_Out 0.095215  L_KL 0.175781  MSE 0.000183  λ 0.5199  Temp 1.739
+  Layer 02 Step [150200]  Train 0.207031  Val 0.193185  L_Out 0.105469  L_KL 0.197266  MSE 0.000200  λ 0.5273  Temp 1.721
+  Layer 02 Step [160200]  Train 0.218750  Val 0.187640  L_Out 0.101562  L_KL 0.222656  MSE 0.000244  λ 0.4917  Temp 1.704
+  Layer 02 Step [170200]  Train 0.192383  Val 0.181431  L_Out 0.088867  L_KL 0.208984  MSE 0.000208  λ 0.4585  Temp 1.687
+  Layer 02 Step [180200]  Train 0.181641  Val 0.179618  L_Out 0.087891  L_KL 0.204102  MSE 0.000195  λ 0.4445  Temp 1.670
+  Layer 02 Step [190200]  Train 0.210938  Val 0.180594  L_Out 0.104980  L_KL 0.235352  MSE 0.000187  λ 0.4453  Temp 1.654
+  Layer 02 Step [200200]  Train 0.183594  Val 0.191999  L_Out 0.101562  L_KL 0.183594  MSE 0.000162  λ 0.4992  Temp 1.637
+  ✓ Layer 02 calibrated (best Val Loss=0.179618)
+
+--- Calibrating layer 03 (pass 1) ---
+  Layer 03 257 train, 28 val samples
+  Initial λ 0.7930
+  Layer 03 Step [001200]  Train 0.130859  Val 0.128174  L_Out 0.062500  L_KL 0.086914  MSE 0.000209  λ 0.7930  Temp 1.998
+  Layer 03 Step [010200]  Train 0.130859  Val 0.131557  L_Out 0.067383  L_KL 0.079590  MSE 0.000195  λ 0.8198  Temp 1.980
+  Layer 03 Step [020200]  Train 0.130859  Val 0.128523  L_Out 0.061523  L_KL 0.084961  MSE 0.000208  λ 0.7720  Temp 1.960
+  Layer 03 Step [030200]  Train 0.119141  Val 0.132516  L_Out 0.062012  L_KL 0.073242  MSE 0.000202  λ 0.8093  Temp 1.941
+  Layer 03 Step [040200]  Train 0.134766  Val 0.126761  L_Out 0.060059  L_KL 0.092773  MSE 0.000212  λ 0.7283  Temp 1.922
+  Layer 03 Step [050200]  Train 0.135742  Val 0.122611  L_Out 0.061768  L_KL 0.101074  MSE 0.000216  λ 0.6697  Temp 1.902
+  Layer 03 Step [060200]  Train 0.121094  Val 0.125140  L_Out 0.062500  L_KL 0.087402  MSE 0.000211  λ 0.6924  Temp 1.883
+  Layer 03 Step [070200]  Train 0.128906  Val 0.123919  L_Out 0.061768  L_KL 0.097168  MSE 0.000213  λ 0.6640  Temp 1.865
+  Layer 03 Step [080200]  Train 0.128906  Val 0.124128  L_Out 0.063965  L_KL 0.097656  MSE 0.000214  λ 0.6595  Temp 1.846
+  Layer 03 Step [090200]  Train 0.127930  Val 0.121739  L_Out 0.060791  L_KL 0.102051  MSE 0.000217  λ 0.6276  Temp 1.828
+  Layer 03 Step [100200]  Train 0.138672  Val 0.120728  L_Out 0.066895  L_KL 0.115234  MSE 0.000231  λ 0.6041  Temp 1.810
+  Layer 03 Step [110200]  Train 0.112305  Val 0.126186  L_Out 0.060303  L_KL 0.085938  MSE 0.000205  λ 0.6529  Temp 1.792
+  Layer 03 Step [120200]  Train 0.129883  Val 0.124913  L_Out 0.062256  L_KL 0.103516  MSE 0.000214  λ 0.6271  Temp 1.774
+  Layer 03 Step [130200]  Train 0.129883  Val 0.123954  L_Out 0.063477  L_KL 0.106934  MSE 0.000207  λ 0.6104  Temp 1.756
+  Layer 03 Step [140200]  Train 0.135742  Val 0.119158  L_Out 0.061768  L_KL 0.121582  MSE 0.000214  λ 0.5592  Temp 1.739
+  Layer 03 Step [150200]  Train 0.119141  Val 0.122663  L_Out 0.062500  L_KL 0.102051  MSE 0.000213  λ 0.5858  Temp 1.721
+  Layer 03 Step [160200]  Train 0.132812  Val 0.123570  L_Out 0.065918  L_KL 0.113281  MSE 0.000217  λ 0.5839  Temp 1.704
+  Layer 03 Step [170200]  Train 0.125977  Val 0.121878  L_Out 0.060303  L_KL 0.112793  MSE 0.000212  λ 0.5592  Temp 1.687
+  Layer 03 Step [180200]  Train 0.131836  Val 0.120082  L_Out 0.062988  L_KL 0.122559  MSE 0.000211  λ 0.5366  Temp 1.670
+  Layer 03 Step [190200]  Train 0.122559  Val 0.120902  L_Out 0.061523  L_KL 0.114258  MSE 0.000206  λ 0.5375  Temp 1.654
+  Layer 03 Step [200200]  Train 0.125977  Val 0.119960  L_Out 0.061035  L_KL 0.121094  MSE 0.000212  λ 0.5208  Temp 1.637
+  ✓ Layer 03 calibrated (best Val Loss=0.119158)
+
+--- Calibrating layer 04 (pass 1) ---
+  Layer 04 257 train, 28 val samples
+  Initial λ 0.5198
+  Layer 04 Step [001200]  Train 0.127930  Val 0.119507  L_Out 0.062256  L_KL 0.125000  MSE 0.000334  λ 0.5198  Temp 1.998
+  Layer 04 Step [010200]  Train 0.115234  Val 0.124146  L_Out 0.061035  L_KL 0.105469  MSE 0.000307  λ 0.5492  Temp 1.980
+  Layer 04 Step [020200]  Train 0.145508  Val 0.119594  L_Out 0.065918  L_KL 0.144531  MSE 0.000362  λ 0.5027  Temp 1.960
+  Layer 04 Step [030200]  Train 0.113770  Val 0.126971  L_Out 0.062256  L_KL 0.102051  MSE 0.000309  λ 0.5564  Temp 1.941
+  Layer 04 Step [040200]  Train 0.132812  Val 0.127895  L_Out 0.066895  L_KL 0.119629  MSE 0.000326  λ 0.5578  Temp 1.922
+  Layer 04 Step [050200]  Train 0.128906  Val 0.126918  L_Out 0.062012  L_KL 0.120117  MSE 0.000317  λ 0.5370  Temp 1.902
+  Layer 04 Step [060200]  Train 0.134766  Val 0.122437  L_Out 0.062012  L_KL 0.135742  MSE 0.000330  λ 0.4969  Temp 1.883
+  Layer 04 Step [070200]  Train 0.119141  Val 0.122750  L_Out 0.058594  L_KL 0.121094  MSE 0.000319  λ 0.4904  Temp 1.865
+  Layer 04 Step [080200]  Train 0.124512  Val 0.128976  L_Out 0.067383  L_KL 0.116699  MSE 0.000328  λ 0.5339  Temp 1.846
+  Layer 04 Step [090200]  Train 0.132812  Val 0.127023  L_Out 0.063477  L_KL 0.130859  MSE 0.000334  λ 0.5095  Temp 1.828
+  Layer 04 Step [100200]  Train 0.113281  Val 0.128610  L_Out 0.057373  L_KL 0.110352  MSE 0.000307  λ 0.5147  Temp 1.810
+  Layer 04 Step [110200]  Train 0.130859  Val 0.127058  L_Out 0.063477  L_KL 0.131836  MSE 0.000313  λ 0.4981  Temp 1.792
+  Layer 04 Step [120200]  Train 0.133789  Val 0.124146  L_Out 0.062012  L_KL 0.143555  MSE 0.000336  λ 0.4650  Temp 1.774
+  Layer 04 Step [130200]  Train 0.128906  Val 0.123553  L_Out 0.062988  L_KL 0.141602  MSE 0.000326  λ 0.4549  Temp 1.756
+  Layer 04 Step [140200]  Train 0.131836  Val 0.123239  L_Out 0.064941  L_KL 0.147461  MSE 0.000343  λ 0.4477  Temp 1.739
+  Layer 04 Step [150200]  Train 0.121094  Val 0.127511  L_Out 0.063477  L_KL 0.128906  MSE 0.000319  λ 0.4700  Temp 1.721
+  Layer 04 Step [160200]  Train 0.130859  Val 0.123221  L_Out 0.059814  L_KL 0.151367  MSE 0.000322  λ 0.4326  Temp 1.704
+  Layer 04 Step [170200]  Train 0.137695  Val 0.120013  L_Out 0.064453  L_KL 0.168945  MSE 0.000345  λ 0.4071  Temp 1.687
+  Layer 04 Step [180200]  Train 0.116211  Val 0.129761  L_Out 0.064941  L_KL 0.124512  MSE 0.000317  λ 0.4643  Temp 1.670
+  Layer 04 Step [190200]  Train 0.127930  Val 0.132028  L_Out 0.065430  L_KL 0.134766  MSE 0.000309  λ 0.4749  Temp 1.654
+  Layer 04 Step [200200]  Train 0.140625  Val 0.127005  L_Out 0.063477  L_KL 0.163086  MSE 0.000343  λ 0.4321  Temp 1.637
+  ✓ Layer 04 calibrated (best Val Loss=0.119507)
+
+--- Calibrating layer 05 (pass 1) ---
+  Layer 05 257 train, 28 val samples
+  Initial λ 0.2201
+  Layer 05 Step [001200]  Train 0.316406  Val 0.335763  L_Out 0.142578  L_KL 0.789062  MSE 0.001266  λ 0.2201  Temp 1.998
+  Layer 05 Step [010200]  Train 0.294922  Val 0.329939  L_Out 0.140625  L_KL 0.699219  MSE 0.001251  λ 0.2106  Temp 1.980
+  Layer 05 Step [020200]  Train 0.240234  Val 0.317313  L_Out 0.107910  L_KL 0.625000  MSE 0.000919  λ 0.1916  Temp 1.960
+  Layer 05 Step [030200]  Train 0.289062  Val 0.309396  L_Out 0.135742  L_KL 0.804688  MSE 0.001160  λ 0.1802  Temp 1.941
+  Layer 05 Step [040200]  Train 0.240234  Val 0.322126  L_Out 0.126953  L_KL 0.621094  MSE 0.000992  λ 0.1923  Temp 1.922
+  Layer 05 Step [050200]  Train 0.367188  Val 0.322266  L_Out 0.182617  L_KL 0.968750  MSE 0.001633  λ 0.1904  Temp 1.902
+  Layer 05 Step [060200]  Train 0.343750  Val 0.319127  L_Out 0.166016  L_KL 0.929688  MSE 0.001472  λ 0.1845  Temp 1.883
+  Layer 05 Step [070200]  Train 0.382812  Val 0.337123  L_Out 0.208984  L_KL 0.949219  MSE 0.001831  λ 0.2023  Temp 1.865
+  Layer 05 Step [080200]  Train 0.359375  Val 0.326869  L_Out 0.166992  L_KL 0.953125  MSE 0.001602  λ 0.1888  Temp 1.846
+  Layer 05 Step [090200]  Train 0.359375  Val 0.340506  L_Out 0.191406  L_KL 0.894531  MSE 0.001732  λ 0.2014  Temp 1.828
+  Layer 05 Step [100200]  Train 0.390625  Val 0.340297  L_Out 0.193359  L_KL 0.984375  MSE 0.001877  λ 0.1989  Temp 1.810
+  Layer 05 Step [110200]  Train 0.378906  Val 0.345738  L_Out 0.192383  L_KL 0.937500  MSE 0.001633  λ 0.2021  Temp 1.792
+  Layer 05 Step [120200]  Train 0.324219  Val 0.333496  L_Out 0.148438  L_KL 0.863281  MSE 0.001221  λ 0.1870  Temp 1.774
+  Layer 05 Step [130200]  Train 0.304688  Val 0.332868  L_Out 0.150391  L_KL 0.828125  MSE 0.001183  λ 0.1843  Temp 1.756
+  Layer 05 Step [140200]  Train 0.404297  Val 0.327741  L_Out 0.193359  L_KL 1.148438  MSE 0.001801  λ 0.1763  Temp 1.739
+  Layer 05 Step [150200]  Train 0.244141  Val 0.337193  L_Out 0.127930  L_KL 0.664062  MSE 0.001076  λ 0.1845  Temp 1.721
+  Layer 05 Step [160200]  Train 0.406250  Val 0.339774  L_Out 0.203125  L_KL 1.093750  MSE 0.001587  λ 0.1851  Temp 1.704
+  Layer 05 Step [170200]  Train 0.318359  Val 0.330880  L_Out 0.149414  L_KL 0.914062  MSE 0.001411  λ 0.1743  Temp 1.687
+  Layer 05 Step [180200]  Train 0.308594  Val 0.324114  L_Out 0.145508  L_KL 0.929688  MSE 0.001434  λ 0.1654  Temp 1.670
+  Layer 05 Step [190200]  Train 0.316406  Val 0.318011  L_Out 0.150391  L_KL 1.000000  MSE 0.001297  λ 0.1579  Temp 1.654
+  Layer 05 Step [200200]  Train 0.265625  Val 0.335031  L_Out 0.143555  L_KL 0.765625  MSE 0.001122  λ 0.1727  Temp 1.637
+  ✓ Layer 05 calibrated (best Val Loss=0.309396)
+
+--- Calibrating layer 06 (pass 1) ---
+  Layer 06 257 train, 28 val samples
+  Initial λ 0.4351
+  Layer 06 Step [001200]  Train 0.096680  Val 0.105399  L_Out 0.048828  L_KL 0.111328  MSE 0.000584  λ 0.4351  Temp 1.998
+  Layer 06 Step [010200]  Train 0.089844  Val 0.109846  L_Out 0.047852  L_KL 0.096680  MSE 0.000530  λ 0.4650  Temp 1.980
+  Layer 06 Step [020200]  Train 0.108398  Val 0.109201  L_Out 0.052246  L_KL 0.120117  MSE 0.000626  λ 0.4500  Temp 1.960
+  Layer 06 Step [030200]  Train 0.121094  Val 0.105259  L_Out 0.055176  L_KL 0.147461  MSE 0.000736  λ 0.4121  Temp 1.941
+  Layer 06 Step [040200]  Train 0.098145  Val 0.106742  L_Out 0.049805  L_KL 0.117676  MSE 0.000626  λ 0.4177  Temp 1.922
+  Layer 06 Step [050200]  Train 0.112793  Val 0.107125  L_Out 0.055176  L_KL 0.136719  MSE 0.000622  λ 0.4106  Temp 1.902
+  Layer 06 Step [060200]  Train 0.101074  Val 0.106550  L_Out 0.049072  L_KL 0.126953  MSE 0.000610  λ 0.3986  Temp 1.883
+  Layer 06 Step [070200]  Train 0.104492  Val 0.108346  L_Out 0.052979  L_KL 0.128906  MSE 0.000587  λ 0.4048  Temp 1.865
+  Layer 06 Step [080200]  Train 0.108887  Val 0.111938  L_Out 0.057373  L_KL 0.128906  MSE 0.000645  λ 0.4249  Temp 1.846
+  Layer 06 Step [090200]  Train 0.109375  Val 0.109253  L_Out 0.050781  L_KL 0.136719  MSE 0.000641  λ 0.3982  Temp 1.828
+  Layer 06 Step [100200]  Train 0.109863  Val 0.105783  L_Out 0.050293  L_KL 0.148438  MSE 0.000633  λ 0.3685  Temp 1.810
+  Layer 06 Step [110200]  Train 0.117188  Val 0.104353  L_Out 0.055176  L_KL 0.166992  MSE 0.000725  λ 0.3495  Temp 1.792
+  Layer 06 Step [120200]  Train 0.100586  Val 0.102905  L_Out 0.047852  L_KL 0.151367  MSE 0.000626  λ 0.3328  Temp 1.774
+  Layer 06 Step [130200]  Train 0.097656  Val 0.107771  L_Out 0.052734  L_KL 0.135742  MSE 0.000587  λ 0.3606  Temp 1.756
+  Layer 06 Step [140200]  Train 0.102051  Val 0.112653  L_Out 0.054688  L_KL 0.131836  MSE 0.000595  λ 0.3877  Temp 1.739
+  Layer 06 Step [150200]  Train 0.109375  Val 0.110979  L_Out 0.052246  L_KL 0.148438  MSE 0.000580  λ 0.3699  Temp 1.721
+  Layer 06 Step [160200]  Train 0.108887  Val 0.108451  L_Out 0.050781  L_KL 0.158203  MSE 0.000671  λ 0.3454  Temp 1.704
+  Layer 06 Step [170200]  Train 0.101562  Val 0.112235  L_Out 0.053223  L_KL 0.138672  MSE 0.000568  λ 0.3646  Temp 1.687
+  Layer 06 Step [180200]  Train 0.088867  Val 0.113211  L_Out 0.044434  L_KL 0.122070  MSE 0.000504  λ 0.3643  Temp 1.670
+  Layer 06 Step [190200]  Train 0.126953  Val 0.107596  L_Out 0.055664  L_KL 0.195312  MSE 0.000771  λ 0.3247  Temp 1.654
+  Layer 06 Step [200200]  Train 0.100586  Val 0.107649  L_Out 0.049316  L_KL 0.157227  MSE 0.000610  λ 0.3192  Temp 1.637
+  ✓ Layer 06 calibrated (best Val Loss=0.102905)
+
+--- Calibrating layer 07 (pass 1) ---
+  Layer 07 257 train, 28 val samples
+  Initial λ 0.4441
+  Layer 07 Step [001200]  Train 0.096680  Val 0.099784  L_Out 0.050049  L_KL 0.104004  MSE 0.000496  λ 0.4441  Temp 1.998
+  Layer 07 Step [010200]  Train 0.102539  Val 0.097151  L_Out 0.047852  L_KL 0.124023  MSE 0.000557  λ 0.4150  Temp 1.980
+  Layer 07 Step [020200]  Train 0.107422  Val 0.095267  L_Out 0.050293  L_KL 0.137695  MSE 0.000542  λ 0.3901  Temp 1.960
+  Layer 07 Step [030200]  Train 0.092285  Val 0.095878  L_Out 0.046143  L_KL 0.117676  MSE 0.000557  λ 0.3911  Temp 1.941
+  Layer 07 Step [040200]  Train 0.101074  Val 0.097011  L_Out 0.050781  L_KL 0.128906  MSE 0.000534  λ 0.3925  Temp 1.922
+  Layer 07 Step [050200]  Train 0.099121  Val 0.093977  L_Out 0.045410  L_KL 0.136719  MSE 0.000565  λ 0.3623  Temp 1.902
+  Layer 07 Step [060200]  Train 0.094238  Val 0.095302  L_Out 0.047607  L_KL 0.127930  MSE 0.000511  λ 0.3672  Temp 1.883
+  Layer 07 Step [070200]  Train 0.103027  Val 0.096436  L_Out 0.051758  L_KL 0.140625  MSE 0.000534  λ 0.3676  Temp 1.865
+  Layer 07 Step [080200]  Train 0.095703  Val 0.096924  L_Out 0.047363  L_KL 0.130859  MSE 0.000565  λ 0.3648  Temp 1.846
+  Layer 07 Step [090200]  Train 0.101074  Val 0.096244  L_Out 0.048828  L_KL 0.142578  MSE 0.000584  λ 0.3536  Temp 1.828
+  Layer 07 Step [100200]  Train 0.083008  Val 0.105539  L_Out 0.047852  L_KL 0.099121  MSE 0.000427  λ 0.4182  Temp 1.810
+  Layer 07 Step [110200]  Train 0.109863  Val 0.100394  L_Out 0.048340  L_KL 0.148438  MSE 0.000546  λ 0.3719  Temp 1.792
+  Layer 07 Step [120200]  Train 0.105469  Val 0.096662  L_Out 0.047852  L_KL 0.155273  MSE 0.000526  λ 0.3401  Temp 1.774
+  Layer 07 Step [130200]  Train 0.092773  Val 0.097499  L_Out 0.046387  L_KL 0.136719  MSE 0.000484  λ 0.3397  Temp 1.756
+  Layer 07 Step [140200]  Train 0.095703  Val 0.098371  L_Out 0.047852  L_KL 0.140625  MSE 0.000530  λ 0.3400  Temp 1.739
+  Layer 07 Step [150200]  Train 0.088867  Val 0.101859  L_Out 0.046631  L_KL 0.124023  MSE 0.000484  λ 0.3580  Temp 1.721
+  Layer 07 Step [160200]  Train 0.088379  Val 0.103690  L_Out 0.045166  L_KL 0.121094  MSE 0.000450  λ 0.3655  Temp 1.704
+  Layer 07 Step [170200]  Train 0.103516  Val 0.099487  L_Out 0.046631  L_KL 0.156250  MSE 0.000565  λ 0.3320  Temp 1.687
+  Layer 07 Step [180200]  Train 0.104492  Val 0.096418  L_Out 0.047852  L_KL 0.169922  MSE 0.000523  λ 0.3068  Temp 1.670
+  Layer 07 Step [190200]  Train 0.095215  Val 0.097028  L_Out 0.047119  L_KL 0.156250  MSE 0.000557  λ 0.3042  Temp 1.654
+  Layer 07 Step [200200]  Train 0.103516  Val 0.096819  L_Out 0.050293  L_KL 0.172852  MSE 0.000534  λ 0.2976  Temp 1.637
+  ✓ Layer 07 calibrated (best Val Loss=0.093977)
+
+--- Calibrating layer 08 (pass 1) ---
+  Layer 08 257 train, 28 val samples
+  Initial λ 0.3423
+  Layer 08 Step [001200]  Train 0.108398  Val 0.116298  L_Out 0.052490  L_KL 0.164062  MSE 0.000767  λ 0.3423  Temp 1.998
+  Layer 08 Step [010200]  Train 0.116699  Val 0.116316  L_Out 0.057373  L_KL 0.173828  MSE 0.000687  λ 0.3362  Temp 1.980
+  Layer 08 Step [020200]  Train 0.123047  Val 0.110840  L_Out 0.054199  L_KL 0.205078  MSE 0.000797  λ 0.3002  Temp 1.960
+  Layer 08 Step [030200]  Train 0.108398  Val 0.115670  L_Out 0.057861  L_KL 0.168945  MSE 0.000751  λ 0.3214  Temp 1.941
+  Layer 08 Step [040200]  Train 0.116211  Val 0.113211  L_Out 0.054199  L_KL 0.192383  MSE 0.000790  λ 0.3015  Temp 1.922
+  Layer 08 Step [050200]  Train 0.103027  Val 0.114258  L_Out 0.051514  L_KL 0.169922  MSE 0.000683  λ 0.3024  Temp 1.902
+  Layer 08 Step [060200]  Train 0.110352  Val 0.114258  L_Out 0.054199  L_KL 0.185547  MSE 0.000706  λ 0.2972  Temp 1.883
+  Layer 08 Step [070200]  Train 0.111816  Val 0.115688  L_Out 0.056641  L_KL 0.186523  MSE 0.000698  λ 0.3004  Temp 1.865
+  Layer 08 Step [080200]  Train 0.114258  Val 0.116961  L_Out 0.057129  L_KL 0.189453  MSE 0.000690  λ 0.3010  Temp 1.846
+  Layer 08 Step [090200]  Train 0.108398  Val 0.120379  L_Out 0.055908  L_KL 0.173828  MSE 0.000671  λ 0.3113  Temp 1.828
+  Layer 08 Step [100200]  Train 0.123047  Val 0.116525  L_Out 0.056396  L_KL 0.212891  MSE 0.000774  λ 0.2881  Temp 1.810
+  Layer 08 Step [110200]  Train 0.112305  Val 0.119699  L_Out 0.057861  L_KL 0.188477  MSE 0.000603  λ 0.2976  Temp 1.792
+  Layer 08 Step [120200]  Train 0.124023  Val 0.116786  L_Out 0.057617  L_KL 0.221680  MSE 0.000755  λ 0.2787  Temp 1.774
+  Layer 08 Step [130200]  Train 0.116211  Val 0.114118  L_Out 0.054688  L_KL 0.221680  MSE 0.000763  λ 0.2627  Temp 1.756
+  Layer 08 Step [140200]  Train 0.110352  Val 0.113246  L_Out 0.053223  L_KL 0.216797  MSE 0.000759  λ 0.2541  Temp 1.739
+  Layer 08 Step [150200]  Train 0.106445  Val 0.118792  L_Out 0.056885  L_KL 0.194336  MSE 0.000618  λ 0.2734  Temp 1.721
+  Layer 08 Step [160200]  Train 0.115723  Val 0.119873  L_Out 0.057861  L_KL 0.210938  MSE 0.000717  λ 0.2739  Temp 1.704
+  Layer 08 Step [170200]  Train 0.125000  Val 0.114833  L_Out 0.055908  L_KL 0.251953  MSE 0.000748  λ 0.2479  Temp 1.687
+  Layer 08 Step [180200]  Train 0.115234  Val 0.113822  L_Out 0.055664  L_KL 0.239258  MSE 0.000755  λ 0.2403  Temp 1.670
+  Layer 08 Step [190200]  Train 0.115234  Val 0.114380  L_Out 0.057129  L_KL 0.243164  MSE 0.000740  λ 0.2376  Temp 1.654
+  Layer 08 Step [200200]  Train 0.111328  Val 0.115914  L_Out 0.056641  L_KL 0.232422  MSE 0.000744  λ 0.2407  Temp 1.637
+  ✓ Layer 08 calibrated (best Val Loss=0.110840)
+
+--- Calibrating layer 09 (pass 1) ---
+  Layer 09 257 train, 28 val samples
+  Initial λ 0.4260
+  Layer 09 Step [001200]  Train 0.138672  Val 0.132080  L_Out 0.066406  L_KL 0.168945  MSE 0.000801  λ 0.4260  Temp 1.998
+  Layer 09 Step [010200]  Train 0.140625  Val 0.129046  L_Out 0.065430  L_KL 0.176758  MSE 0.000793  λ 0.3981  Temp 1.980
+  Layer 09 Step [020200]  Train 0.134766  Val 0.129116  L_Out 0.066406  L_KL 0.170898  MSE 0.000816  λ 0.3933  Temp 1.960
+  Layer 09 Step [030200]  Train 0.121094  Val 0.132446  L_Out 0.062012  L_KL 0.149414  MSE 0.000671  λ 0.4042  Temp 1.941
+  Layer 09 Step [040200]  Train 0.136719  Val 0.129813  L_Out 0.064941  L_KL 0.177734  MSE 0.000809  λ 0.3848  Temp 1.922
+  Layer 09 Step [050200]  Train 0.134766  Val 0.130354  L_Out 0.066895  L_KL 0.177734  MSE 0.000813  λ 0.3806  Temp 1.902
+  Layer 09 Step [060200]  Train 0.121094  Val 0.136475  L_Out 0.064941  L_KL 0.148438  MSE 0.000736  λ 0.4090  Temp 1.883
+  Layer 09 Step [070200]  Train 0.130859  Val 0.136143  L_Out 0.064453  L_KL 0.164062  MSE 0.000732  λ 0.4009  Temp 1.865
+  Layer 09 Step [080200]  Train 0.126953  Val 0.141706  L_Out 0.066895  L_KL 0.149414  MSE 0.000702  λ 0.4243  Temp 1.846
+  Layer 09 Step [090200]  Train 0.143555  Val 0.138393  L_Out 0.066895  L_KL 0.178711  MSE 0.000801  λ 0.3993  Temp 1.828
+  Layer 09 Step [100200]  Train 0.133789  Val 0.134940  L_Out 0.062500  L_KL 0.178711  MSE 0.000801  λ 0.3745  Temp 1.810
+  Layer 09 Step [110200]  Train 0.133789  Val 0.140311  L_Out 0.070801  L_KL 0.168945  MSE 0.000717  λ 0.3968  Temp 1.792
+  Layer 09 Step [120200]  Train 0.132812  Val 0.137277  L_Out 0.062256  L_KL 0.175781  MSE 0.000725  λ 0.3755  Temp 1.774
+  Layer 09 Step [130200]  Train 0.130859  Val 0.139404  L_Out 0.066406  L_KL 0.172852  MSE 0.000744  λ 0.3798  Temp 1.756
+  Layer 09 Step [140200]  Train 0.131836  Val 0.145072  L_Out 0.069824  L_KL 0.164062  MSE 0.000656  λ 0.4027  Temp 1.739
+  Layer 09 Step [150200]  Train 0.144531  Val 0.136911  L_Out 0.062988  L_KL 0.204102  MSE 0.000736  λ 0.3557  Temp 1.721
+  Layer 09 Step [160200]  Train 0.142578  Val 0.132324  L_Out 0.065430  L_KL 0.218750  MSE 0.000813  λ 0.3274  Temp 1.704
+  Layer 09 Step [170200]  Train 0.135742  Val 0.133911  L_Out 0.068848  L_KL 0.206055  MSE 0.000717  λ 0.3308  Temp 1.687
+  Layer 09 Step [180200]  Train 0.134766  Val 0.132202  L_Out 0.064941  L_KL 0.212891  MSE 0.000740  λ 0.3179  Temp 1.670
+  Layer 09 Step [190200]  Train 0.132812  Val 0.133650  L_Out 0.066406  L_KL 0.207031  MSE 0.000698  λ 0.3193  Temp 1.654
+  Layer 09 Step [200200]  Train 0.129883  Val 0.134539  L_Out 0.064453  L_KL 0.203125  MSE 0.000713  λ 0.3183  Temp 1.637
+  ✓ Layer 09 calibrated (best Val Loss=0.129046)
+
+--- Calibrating layer 10 (pass 1) ---
+  Layer 10 257 train, 28 val samples
+  Initial λ 0.3606
+  Layer 10 Step [001200]  Train 0.135742  Val 0.157296  L_Out 0.078613  L_KL 0.158203  MSE 0.000610  λ 0.3606  Temp 1.998
+  Layer 10 Step [010200]  Train 0.154297  Val 0.168143  L_Out 0.084961  L_KL 0.191406  MSE 0.000710  λ 0.4022  Temp 1.980
+  Layer 10 Step [020200]  Train 0.156250  Val 0.161307  L_Out 0.070312  L_KL 0.212891  MSE 0.000793  λ 0.3663  Temp 1.960
+  Layer 10 Step [030200]  Train 0.182617  Val 0.155029  L_Out 0.082031  L_KL 0.273438  MSE 0.001114  λ 0.3331  Temp 1.941
+  Layer 10 Step [040200]  Train 0.150391  Val 0.155343  L_Out 0.074219  L_KL 0.228516  MSE 0.000790  λ 0.3290  Temp 1.922
+  Layer 10 Step [050200]  Train 0.155273  Val 0.162144  L_Out 0.083008  L_KL 0.220703  MSE 0.000713  λ 0.3525  Temp 1.902
+  Layer 10 Step [060200]  Train 0.172852  Val 0.159389  L_Out 0.082031  L_KL 0.257812  MSE 0.000900  λ 0.3354  Temp 1.883
+  Layer 10 Step [070200]  Train 0.145508  Val 0.166016  L_Out 0.077148  L_KL 0.204102  MSE 0.000679  λ 0.3567  Temp 1.865
+  Layer 10 Step [080200]  Train 0.166016  Val 0.163609  L_Out 0.079102  L_KL 0.242188  MSE 0.000786  λ 0.3416  Temp 1.846
+  Layer 10 Step [090200]  Train 0.152344  Val 0.160470  L_Out 0.072266  L_KL 0.234375  MSE 0.000717  λ 0.3250  Temp 1.828
+  Layer 10 Step [100200]  Train 0.148438  Val 0.161203  L_Out 0.073242  L_KL 0.229492  MSE 0.000725  λ 0.3221  Temp 1.810
+  Layer 10 Step [110200]  Train 0.152344  Val 0.162040  L_Out 0.075684  L_KL 0.236328  MSE 0.000778  λ 0.3212  Temp 1.792
+  Layer 10 Step [120200]  Train 0.153320  Val 0.156913  L_Out 0.070312  L_KL 0.257812  MSE 0.000828  λ 0.2969  Temp 1.774
+  Layer 10 Step [130200]  Train 0.144531  Val 0.163679  L_Out 0.076660  L_KL 0.226562  MSE 0.000755  λ 0.3177  Temp 1.756
+  Layer 10 Step [140200]  Train 0.167969  Val 0.160993  L_Out 0.079590  L_KL 0.275391  MSE 0.000984  λ 0.3033  Temp 1.739
+  Layer 10 Step [150200]  Train 0.158203  Val 0.157994  L_Out 0.074707  L_KL 0.273438  MSE 0.000786  λ 0.2883  Temp 1.721
+  Layer 10 Step [160200]  Train 0.143555  Val 0.160819  L_Out 0.073242  L_KL 0.245117  MSE 0.000778  λ 0.2935  Temp 1.704
+  Layer 10 Step [170200]  Train 0.156250  Val 0.163156  L_Out 0.079102  L_KL 0.261719  MSE 0.000763  λ 0.2979  Temp 1.687
+  Layer 10 Step [180200]  Train 0.164062  Val 0.155727  L_Out 0.072754  L_KL 0.304688  MSE 0.000835  λ 0.2683  Temp 1.670
+  Layer 10 Step [190200]  Train 0.171875  Val 0.150809  L_Out 0.079102  L_KL 0.347656  MSE 0.000965  λ 0.2479  Temp 1.654
+  Layer 10 Step [200200]  Train 0.149414  Val 0.156320  L_Out 0.079102  L_KL 0.283203  MSE 0.000778  λ 0.2636  Temp 1.637
+  ✓ Layer 10 calibrated (best Val Loss=0.150809)
+
+--- Calibrating layer 11 (pass 1) ---
+  Layer 11 257 train, 28 val samples
+  Initial λ 0.4797
+  Layer 11 Step [001200]  Train 0.160156  Val 0.154785  L_Out 0.086426  L_KL 0.152344  MSE 0.000515  λ 0.4797  Temp 1.998
+  Layer 11 Step [010200]  Train 0.142578  Val 0.164655  L_Out 0.078613  L_KL 0.134766  MSE 0.000458  λ 0.5315  Temp 1.980
+  Layer 11 Step [020200]  Train 0.180664  Val 0.157366  L_Out 0.080566  L_KL 0.189453  MSE 0.000580  λ 0.4784  Temp 1.960
+  Layer 11 Step [030200]  Train 0.166016  Val 0.157540  L_Out 0.082031  L_KL 0.173828  MSE 0.000519  λ 0.4752  Temp 1.941
+  Layer 11 Step [040200]  Train 0.172852  Val 0.152727  L_Out 0.079590  L_KL 0.197266  MSE 0.000599  λ 0.4393  Temp 1.922
+  Layer 11 Step [050200]  Train 0.153320  Val 0.153669  L_Out 0.076660  L_KL 0.175781  MSE 0.000507  λ 0.4377  Temp 1.902
+  Layer 11 Step [060200]  Train 0.169922  Val 0.144915  L_Out 0.072754  L_KL 0.222656  MSE 0.000660  λ 0.3822  Temp 1.883
+  Layer 11 Step [070200]  Train 0.146484  Val 0.144688  L_Out 0.072266  L_KL 0.195312  MSE 0.000587  λ 0.3761  Temp 1.865
+  Layer 11 Step [080200]  Train 0.146484  Val 0.145386  L_Out 0.073242  L_KL 0.196289  MSE 0.000557  λ 0.3746  Temp 1.846
+  Layer 11 Step [090200]  Train 0.154297  Val 0.153704  L_Out 0.083984  L_KL 0.185547  MSE 0.000534  λ 0.4136  Temp 1.828
+  Layer 11 Step [100200]  Train 0.156250  Val 0.149414  L_Out 0.072754  L_KL 0.203125  MSE 0.000587  λ 0.3859  Temp 1.810
+  Layer 11 Step [110200]  Train 0.162109  Val 0.150949  L_Out 0.081055  L_KL 0.208008  MSE 0.000538  λ 0.3878  Temp 1.792
+  Layer 11 Step [120200]  Train 0.156250  Val 0.148542  L_Out 0.074219  L_KL 0.210938  MSE 0.000553  λ 0.3698  Temp 1.774
+  Layer 11 Step [130200]  Train 0.148438  Val 0.153076  L_Out 0.078125  L_KL 0.190430  MSE 0.000507  λ 0.3900  Temp 1.756
+  Layer 11 Step [140200]  Train 0.152344  Val 0.153634  L_Out 0.075195  L_KL 0.196289  MSE 0.000538  λ 0.3866  Temp 1.739
+  Layer 11 Step [150200]  Train 0.157227  Val 0.153460  L_Out 0.077148  L_KL 0.206055  MSE 0.000515  λ 0.3805  Temp 1.721
+  Layer 11 Step [160200]  Train 0.162109  Val 0.151263  L_Out 0.077148  L_KL 0.220703  MSE 0.000549  λ 0.3650  Temp 1.704
+  Layer 11 Step [170200]  Train 0.149414  Val 0.157436  L_Out 0.079590  L_KL 0.191406  MSE 0.000496  λ 0.3904  Temp 1.687
+  Layer 11 Step [180200]  Train 0.162109  Val 0.155622  L_Out 0.078125  L_KL 0.214844  MSE 0.000534  λ 0.3770  Temp 1.670
+  Layer 11 Step [190200]  Train 0.157227  Val 0.156041  L_Out 0.077637  L_KL 0.208984  MSE 0.000500  λ 0.3743  Temp 1.654
+  Layer 11 Step [200200]  Train 0.163086  Val 0.153809  L_Out 0.078125  L_KL 0.226562  MSE 0.000534  λ 0.3595  Temp 1.637
+  ✓ Layer 11 calibrated (best Val Loss=0.144688)
+
+--- Calibrating layer 12 (pass 1) ---
+  Layer 12 257 train, 28 val samples
+  Initial λ 0.3022
+  Layer 12 Step [001200]  Train 0.210938  Val 0.209612  L_Out 0.112793  L_KL 0.324219  MSE 0.000839  λ 0.3022  Temp 1.998
+  Layer 12 Step [010200]  Train 0.193359  Val 0.217285  L_Out 0.102539  L_KL 0.304688  MSE 0.000786  λ 0.3194  Temp 1.980
+  Layer 12 Step [020200]  Train 0.201172  Val 0.227748  L_Out 0.107910  L_KL 0.292969  MSE 0.000797  λ 0.3439  Temp 1.960
+  Layer 12 Step [030200]  Train 0.230469  Val 0.225900  L_Out 0.111816  L_KL 0.347656  MSE 0.000820  λ 0.3327  Temp 1.941
+  Layer 12 Step [040200]  Train 0.216797  Val 0.223249  L_Out 0.104004  L_KL 0.339844  MSE 0.000973  λ 0.3194  Temp 1.922
+  Layer 12 Step [050200]  Train 0.228516  Val 0.213396  L_Out 0.102051  L_KL 0.400391  MSE 0.001099  λ 0.2871  Temp 1.902
+  Layer 12 Step [060200]  Train 0.220703  Val 0.216169  L_Out 0.111328  L_KL 0.382812  MSE 0.001015  λ 0.2890  Temp 1.883
+  Layer 12 Step [070200]  Train 0.222656  Val 0.215088  L_Out 0.108398  L_KL 0.394531  MSE 0.000916  λ 0.2819  Temp 1.865
+  Layer 12 Step [080200]  Train 0.221680  Val 0.211740  L_Out 0.105469  L_KL 0.412109  MSE 0.000977  λ 0.2689  Temp 1.846
+  Layer 12 Step [090200]  Train 0.213867  Val 0.215646  L_Out 0.109375  L_KL 0.390625  MSE 0.000927  λ 0.2744  Temp 1.828
+  Layer 12 Step [100200]  Train 0.216797  Val 0.219291  L_Out 0.109863  L_KL 0.386719  MSE 0.000977  λ 0.2793  Temp 1.810
+  Layer 12 Step [110200]  Train 0.188477  Val 0.228411  L_Out 0.100098  L_KL 0.316406  MSE 0.000755  λ 0.2978  Temp 1.792
+  Layer 12 Step [120200]  Train 0.187500  Val 0.235700  L_Out 0.097168  L_KL 0.300781  MSE 0.000801  λ 0.3104  Temp 1.774
+  Layer 12 Step [130200]  Train 0.259766  Val 0.228027  L_Out 0.119141  L_KL 0.453125  MSE 0.000935  λ 0.2867  Temp 1.756
+  Layer 12 Step [140200]  Train 0.236328  Val 0.219099  L_Out 0.106934  L_KL 0.453125  MSE 0.000896  λ 0.2613  Temp 1.739
+  Layer 12 Step [150200]  Train 0.231445  Val 0.214443  L_Out 0.108398  L_KL 0.468750  MSE 0.001007  λ 0.2463  Temp 1.721
+  Layer 12 Step [160200]  Train 0.223633  Val 0.214530  L_Out 0.109863  L_KL 0.458984  MSE 0.001007  λ 0.2428  Temp 1.704
+  Layer 12 Step [170200]  Train 0.218750  Val 0.214879  L_Out 0.107422  L_KL 0.453125  MSE 0.000923  λ 0.2399  Temp 1.687
+  Layer 12 Step [180200]  Train 0.250000  Val 0.214007  L_Out 0.122559  L_KL 0.531250  MSE 0.001022  λ 0.2353  Temp 1.670
+  Layer 12 Step [190200]  Train 0.228516  Val 0.208949  L_Out 0.106934  L_KL 0.519531  MSE 0.000992  λ 0.2206  Temp 1.654
+  Layer 12 Step [200200]  Train 0.224609  Val 0.211321  L_Out 0.112793  L_KL 0.503906  MSE 0.000847  λ 0.2222  Temp 1.637
+  ✓ Layer 12 calibrated (best Val Loss=0.208949)
+
+--- Calibrating layer 13 (pass 1) ---
+  Layer 13 257 train, 28 val samples
+  Initial λ 0.7410
+  Layer 13 Step [001200]  Train 0.335938  Val 0.315639  L_Out 0.140625  L_KL 0.265625  MSE 0.001152  λ 0.7410  Temp 1.998
+  Layer 13 Step [010200]  Train 0.304688  Val 0.295933  L_Out 0.132812  L_KL 0.233398  MSE 0.001106  λ 0.6550  Temp 1.980
+  Layer 13 Step [020200]  Train 0.283203  Val 0.279262  L_Out 0.122070  L_KL 0.244141  MSE 0.000965  λ 0.5775  Temp 1.960
+  Layer 13 Step [030200]  Train 0.316406  Val 0.264648  L_Out 0.139648  L_KL 0.308594  MSE 0.001129  λ 0.5150  Temp 1.941
+  Layer 13 Step [040200]  Train 0.257812  Val 0.268624  L_Out 0.130859  L_KL 0.246094  MSE 0.000938  λ 0.5234  Temp 1.922
+  Layer 13 Step [050200]  Train 0.248047  Val 0.278913  L_Out 0.130859  L_KL 0.224609  MSE 0.000992  λ 0.5530  Temp 1.902
+  Layer 13 Step [060200]  Train 0.289062  Val 0.263846  L_Out 0.125977  L_KL 0.294922  MSE 0.001068  λ 0.4901  Temp 1.883
+  Layer 13 Step [070200]  Train 0.275391  Val 0.253662  L_Out 0.124023  L_KL 0.308594  MSE 0.001022  λ 0.4460  Temp 1.865
+  Layer 13 Step [080200]  Train 0.227539  Val 0.278111  L_Out 0.131836  L_KL 0.215820  MSE 0.000862  λ 0.5284  Temp 1.846
+  Layer 13 Step [090200]  Train 0.285156  Val 0.266811  L_Out 0.128906  L_KL 0.294922  MSE 0.000992  λ 0.4828  Temp 1.828
+  Layer 13 Step [100200]  Train 0.265625  Val 0.256592  L_Out 0.120605  L_KL 0.302734  MSE 0.001038  λ 0.4406  Temp 1.810
+  Layer 13 Step [110200]  Train 0.267578  Val 0.277937  L_Out 0.151367  L_KL 0.261719  MSE 0.001099  λ 0.5095  Temp 1.792
+  Layer 13 Step [120200]  Train 0.298828  Val 0.274588  L_Out 0.144531  L_KL 0.304688  MSE 0.001038  λ 0.4919  Temp 1.774
+  Layer 13 Step [130200]  Train 0.304688  Val 0.259626  L_Out 0.132812  L_KL 0.351562  MSE 0.001144  λ 0.4348  Temp 1.756
+  Layer 13 Step [140200]  Train 0.251953  Val 0.292271  L_Out 0.150391  L_KL 0.234375  MSE 0.001007  λ 0.5383  Temp 1.739
+  Layer 13 Step [150200]  Train 0.277344  Val 0.281355  L_Out 0.126953  L_KL 0.279297  MSE 0.000881  λ 0.4964  Temp 1.721
+  Layer 13 Step [160200]  Train 0.291016  Val 0.277588  L_Out 0.139648  L_KL 0.304688  MSE 0.001045  λ 0.4774  Temp 1.704
+  Layer 13 Step [170200]  Train 0.296875  Val 0.253697  L_Out 0.117188  L_KL 0.375000  MSE 0.001213  λ 0.3949  Temp 1.687
+  Layer 13 Step [180200]  Train 0.257812  Val 0.245919  L_Out 0.118652  L_KL 0.351562  MSE 0.001030  λ 0.3662  Temp 1.670
+  Layer 13 Step [190200]  Train 0.239258  Val 0.245047  L_Out 0.117676  L_KL 0.332031  MSE 0.001068  λ 0.3603  Temp 1.654
+  Layer 13 Step [200200]  Train 0.255859  Val 0.246652  L_Out 0.127930  L_KL 0.351562  MSE 0.001007  λ 0.3621  Temp 1.637
+  ✓ Layer 13 calibrated (best Val Loss=0.245047)
+
+--- Calibrating layer 14 (pass 1) ---
+  Layer 14 257 train, 28 val samples
+  Initial λ 0.4878
+  Layer 14 Step [001200]  Train 0.302734  Val 0.351423  L_Out 0.168945  L_KL 0.273438  MSE 0.001389  λ 0.4878  Temp 1.998
+  Layer 14 Step [010200]  Train 0.300781  Val 0.364258  L_Out 0.159180  L_KL 0.292969  MSE 0.001549  λ 0.5156  Temp 1.980
+  Layer 14 Step [020200]  Train 0.353516  Val 0.355713  L_Out 0.166016  L_KL 0.367188  MSE 0.001709  λ 0.4838  Temp 1.960
+  Layer 14 Step [030200]  Train 0.367188  Val 0.359515  L_Out 0.184570  L_KL 0.376953  MSE 0.001930  λ 0.4867  Temp 1.941
+  Layer 14 Step [040200]  Train 0.347656  Val 0.365374  L_Out 0.175781  L_KL 0.351562  MSE 0.001755  λ 0.4934  Temp 1.922
+  Layer 14 Step [050200]  Train 0.388672  Val 0.359305  L_Out 0.185547  L_KL 0.414062  MSE 0.001953  λ 0.4707  Temp 1.902
+  Layer 14 Step [060200]  Train 0.308594  Val 0.397182  L_Out 0.177734  L_KL 0.273438  MSE 0.001358  λ 0.5604  Temp 1.883
+  Layer 14 Step [070200]  Train 0.406250  Val 0.376953  L_Out 0.177734  L_KL 0.402344  MSE 0.001823  λ 0.5011  Temp 1.865
+  Layer 14 Step [080200]  Train 0.367188  Val 0.386370  L_Out 0.190430  L_KL 0.355469  MSE 0.001770  λ 0.5184  Temp 1.846
+  Layer 14 Step [090200]  Train 0.386719  Val 0.364711  L_Out 0.166016  L_KL 0.423828  MSE 0.001717  λ 0.4550  Temp 1.828
+  Layer 14 Step [100200]  Train 0.363281  Val 0.351493  L_Out 0.166016  L_KL 0.439453  MSE 0.001678  λ 0.4164  Temp 1.810
+  Layer 14 Step [110200]  Train 0.351562  Val 0.363072  L_Out 0.184570  L_KL 0.402344  MSE 0.001709  λ 0.4376  Temp 1.792
+  Layer 14 Step [120200]  Train 0.416016  Val 0.354178  L_Out 0.194336  L_KL 0.507812  MSE 0.002258  λ 0.4101  Temp 1.774
+  Layer 14 Step [130200]  Train 0.398438  Val 0.336775  L_Out 0.175781  L_KL 0.546875  MSE 0.002090  λ 0.3658  Temp 1.756
+  Layer 14 Step [140200]  Train 0.371094  Val 0.340367  L_Out 0.186523  L_KL 0.503906  MSE 0.002228  λ 0.3680  Temp 1.739
+  Layer 14 Step [150200]  Train 0.369141  Val 0.348075  L_Out 0.190430  L_KL 0.482422  MSE 0.001984  λ 0.3814  Temp 1.721
+  Layer 14 Step [160200]  Train 0.287109  Val 0.365025  L_Out 0.154297  L_KL 0.347656  MSE 0.001640  λ 0.4126  Temp 1.704
+  Layer 14 Step [170200]  Train 0.300781  Val 0.368722  L_Out 0.151367  L_KL 0.361328  MSE 0.001556  λ 0.4158  Temp 1.687
+  Layer 14 Step [180200]  Train 0.417969  Val 0.357003  L_Out 0.192383  L_KL 0.542969  MSE 0.002167  λ 0.3850  Temp 1.670
+  Layer 14 Step [190200]  Train 0.390625  Val 0.352923  L_Out 0.187500  L_KL 0.523438  MSE 0.002106  λ 0.3716  Temp 1.654
+  Layer 14 Step [200200]  Train 0.419922  Val 0.336251  L_Out 0.184570  L_KL 0.632812  MSE 0.002380  λ 0.3316  Temp 1.637
+  ✓ Layer 14 calibrated (best Val Loss=0.336251)
+
+--- Calibrating layer 15 (pass 1) ---
+  Layer 15 257 train, 28 val samples
+  Initial λ 0.2963
+  Layer 15 Step [001200]  Train 0.207031  Val 0.208845  L_Out 0.094727  L_KL 0.378906  MSE 0.003891  λ 0.2963  Temp 1.998
+  Layer 15 Step [010200]  Train 0.206055  Val 0.209856  L_Out 0.102539  L_KL 0.349609  MSE 0.003906  λ 0.2948  Temp 1.980
+  Layer 15 Step [020200]  Train 0.218750  Val 0.211217  L_Out 0.109375  L_KL 0.373047  MSE 0.004150  λ 0.2940  Temp 1.960
+  Layer 15 Step [030200]  Train 0.208984  Val 0.204136  L_Out 0.095703  L_KL 0.388672  MSE 0.004028  λ 0.2701  Temp 1.941
+  Layer 15 Step [040200]  Train 0.227539  Val 0.201800  L_Out 0.109375  L_KL 0.439453  MSE 0.004486  λ 0.2595  Temp 1.922
+  Layer 15 Step [050200]  Train 0.183594  Val 0.207450  L_Out 0.095703  L_KL 0.339844  MSE 0.003586  λ 0.2706  Temp 1.902
+  Layer 15 Step [060200]  Train 0.201172  Val 0.209019  L_Out 0.100098  L_KL 0.371094  MSE 0.003891  λ 0.2701  Temp 1.883
+  Layer 15 Step [070200]  Train 0.205078  Val 0.210903  L_Out 0.103027  L_KL 0.378906  MSE 0.003845  λ 0.2710  Temp 1.865
+  Layer 15 Step [080200]  Train 0.200195  Val 0.206299  L_Out 0.093750  L_KL 0.392578  MSE 0.003708  λ 0.2549  Temp 1.846
+  Layer 15 Step [090200]  Train 0.222656  Val 0.214390  L_Out 0.118164  L_KL 0.410156  MSE 0.004364  λ 0.2715  Temp 1.828
+  Layer 15 Step [100200]  Train 0.236328  Val 0.203683  L_Out 0.103516  L_KL 0.488281  MSE 0.004486  λ 0.2418  Temp 1.810
+  Layer 15 Step [110200]  Train 0.218750  Val 0.201242  L_Out 0.104980  L_KL 0.470703  MSE 0.004150  λ 0.2324  Temp 1.792
+  Layer 15 Step [120200]  Train 0.243164  Val 0.194406  L_Out 0.109863  L_KL 0.570312  MSE 0.004730  λ 0.2125  Temp 1.774
+  Layer 15 Step [130200]  Train 0.193359  Val 0.199323  L_Out 0.099609  L_KL 0.435547  MSE 0.003891  λ 0.2206  Temp 1.756
+  Layer 15 Step [140200]  Train 0.186523  Val 0.208287  L_Out 0.100098  L_KL 0.390625  MSE 0.003662  λ 0.2384  Temp 1.739
+  Layer 15 Step [150200]  Train 0.207031  Val 0.211670  L_Out 0.106445  L_KL 0.429688  MSE 0.003998  λ 0.2431  Temp 1.721
+  Layer 15 Step [160200]  Train 0.231445  Val 0.202706  L_Out 0.103516  L_KL 0.527344  MSE 0.004272  λ 0.2197  Temp 1.704
+  Layer 15 Step [170200]  Train 0.211914  Val 0.210484  L_Out 0.112305  L_KL 0.455078  MSE 0.003998  λ 0.2332  Temp 1.687
+  Layer 15 Step [180200]  Train 0.197266  Val 0.207973  L_Out 0.095703  L_KL 0.439453  MSE 0.003738  λ 0.2255  Temp 1.670
+  Layer 15 Step [190200]  Train 0.220703  Val 0.210554  L_Out 0.111328  L_KL 0.484375  MSE 0.004028  λ 0.2277  Temp 1.654
+  Layer 15 Step [200200]  Train 0.192383  Val 0.225063  L_Out 0.106445  L_KL 0.376953  MSE 0.003510  λ 0.2550  Temp 1.637
+  ✓ Layer 15 calibrated (best Val Loss=0.194406)
+
+  Pass 1 completed. Evaluating current model on calibration data...
+  ✓ New best PPL 7.45
+
+  Restoring best scales from pass with PPL 7.45
+
+✓ Sequential calibration completed with 1 passes.
+  Best validation PPL 7.45
+Max logit diff (orig vs wrapped, FP32 path) 0.000000
+✓ Scales saved to calibration_scales_sequential.pkl
+
+Calibrated 4-bit Perplexity (sequential, dynamic λ, QKV-ONLY + FP32 Wo) 7.02
+
+======================================================================
+FINAL SUMMARY
+======================================================================
+ Model                   Perplexity     vs FP32    Recovery 
+------------------------------------------------------------
+ FP32 Reference                6.66        0.00           - 
+ Unoptimized 4-bit             7.02      +0.36        0.0% 
+ AP-Quant Sequential           7.02      +0.36        0.0% 
+======================================================================
+
+ Sequential calibration did not improve PPL. Tune λ  temp  steps  data size.
+
+======================================================================
+PIPELINE COMPLETE
+======================================================================

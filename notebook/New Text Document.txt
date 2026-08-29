@@ -1,0 +1,106 @@
+======================================================================
+AP-QUANT: JOINT CALIBRATION (ALL LAYERS, FIXED 4-BIT, DYNAMIC λ, QKV-ONLY + FP32 Wo, GPT2+LLaMA)
+SEED: 42
+======================================================================
+Device: cuda
+
+Loading open-platypus dataset...
+Calibration chunks: 287
+Evaluation chunks: 291
+
+======================================================================
+STEP 1: FP32 BASELINE
+======================================================================
+
+Loading weights: 100%
+ 148/148 [00:00<00:00, 754.67it/s, Materializing param=transformer.wte.weight]
+
+GPT2LMHeadModel LOAD REPORT from: openai-community/gpt2
+Key                  | Status     |  | 
+---------------------+------------+--+-
+h.{0...11}.attn.bias | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+FP32 Perplexity: 24.39
+
+======================================================================
+STEP 2: UNOPTIMIZED 4-BIT BASELINE (QKV-ONLY + FP32 Wo)
+======================================================================
+
+Loading weights: 100%
+ 148/148 [00:00<00:00, 635.08it/s, Materializing param=transformer.wte.weight]
+
+GPT2LMHeadModel LOAD REPORT from: openai-community/gpt2
+Key                  | Status     |  | 
+---------------------+------------+--+-
+h.{0...11}.attn.bias | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+  GPT2 layer 00: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 01: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 02: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 03: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 04: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 05: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 06: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 07: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 08: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 09: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 10: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 11: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+Unoptimized 4-bit Perplexity (gpt2): 26.62
+
+======================================================================
+STEP 3: SENSITIVITY ANALYSIS
+======================================================================
+
+Loading weights: 100%
+ 148/148 [00:00<00:00, 747.81it/s, Materializing param=transformer.wte.weight]
+
+GPT2LMHeadModel LOAD REPORT from: openai-community/gpt2
+Key                  | Status     |  | 
+---------------------+------------+--+-
+h.{0...11}.attn.bias | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED	:can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+
+  GPT2 layer 00: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 01: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 02: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 03: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 04: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 05: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 06: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 07: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 08: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 09: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 10: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+  GPT2 layer 11: attention quantized to 4-bit (QKV-ONLY + FP32 Wo)
+[Sensitivity] λ = 0.8809
+layer 00: 2b=3.1640, 3b=0.2806, 4b=0.0467, 8b=0.0001, 16b=0.0000, 
+layer 01: 2b=1.6265, 3b=0.1939, 4b=0.0442, 8b=0.0001, 16b=0.0000, 
+layer 02: 2b=6.0987, 3b=0.8047, 4b=0.1937, 8b=0.0006, 16b=0.0000, 
+layer 03: 2b=6.7034, 3b=1.8749, 4b=0.3382, 8b=0.0013, 16b=0.0000, 
+layer 04: 2b=5.0036, 3b=1.3640, 4b=0.2048, 8b=0.0009, 16b=0.0000, 
+layer 05: 2b=6.5220, 3b=1.2792, 4b=0.2353, 8b=0.0007, 16b=0.0000, 
+layer 06: 2b=4.6658, 3b=1.1701, 4b=0.2369, 8b=0.0012, 16b=-0.0000, 
+layer 07: 2b=4.3145, 3b=1.1441, 4b=0.2631, 8b=0.0010, 16b=0.0000, 
+layer 08: 2b=3.3870, 3b=0.8647, 4b=0.2059, 8b=0.0006, 16b=0.0000, 
+layer 09: 2b=2.7815, 3b=0.8349, 4b=0.1927, 8b=0.0007, 16b=-0.0000, 
+layer 10: 2b=2.7132, 3b=0.6725, 4b=0.1615, 8b=0.0005, 16b=0.0000, 
+layer 11: 2b=2.5483, 3b=0.5028, 4b=0.0981, 8b=0.0004, 16b=0.0000, 
+lambda used: 0.8808929311732451
+bit assignment: {11: 4, 10: 4, 9: 4, 8: 4, 7: 4, 6: 4, 5: 4, 4: 4, 3: 4, 2: 4, 1: 4, 0: 4}
+
+======================================================================
+STEP 4: SEQUENTIAL AP-QUANT CALIBRATION
+======================================================================
+
+======================================================================
+PIPELINE COMPLETE
+======================================================================
