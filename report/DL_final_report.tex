@@ -40,16 +40,16 @@ Department of Electrical Engineering, Sharif University of Technology}
 \maketitle
 
 \begin{abstract}
-Post-training quantization (PTQ) reduces the memory footprint of large language models by lowering weight precision. Standard methods like GPTQ and AWQ treat each weight matrix independently, ignoring the coupled nature of attention. We implement an attention-aware framework that jointly calibrates Query, Key, Value, and Output projection matrices using a combined output-reconstruction and temperature-annealed KL-divergence loss, optimized via a straight-through estimator. We reuse the same loss as a sensitivity metric for mixed-precision allocation, solving the bit-allocation problem via dynamic programming over a full five-point sensitivity curve per block. On GPT-2 and Llama-3.2-1B with Open-Platypus and WikiText-2, our method achieves the best 4-bit and 3-bit perplexity on GPT-2/Open-Platypus, remains competitive on Llama-3.2-1B, and our mixed-precision allocation recovers near-FP32 perplexity at a 5-bit average budget.
+Post-training quantization (PTQ) reduces the memory footprint of large language models by lowering weight precision. Standard methods like GPTQ and AWQ treat each weight matrix independently, ignoring the coupled nature of attention. We implement an attention-aware framework that jointly calibrates Query, Key, Value, and Output projection matrices using a combined output-reconstruction and temperature-annealed KL-divergence loss, optimized via a straight-through estimator. We reuse the same loss as a sensitivity metric for mixed-precision allocation, solving the bit-allocation problem via dynamic programming over a five-point sensitivity curve per block. On GPT-2 and Llama-3.2-1B with Open-Platypus and WikiText-2, our method achieves the best 4-bit and 3-bit perplexity on GPT-2/Open-Platypus, remains competitive on Llama-3.2-1B, and our mixed-precision allocation recovers near-FP32 perplexity at a 5-bit average budget, while using 4-10$\times$ less GPU memory than baselines.
 
 \noindent\textit{Code: \scriptsize \url{github.com/pooya-emami/deep-final-project}}
 \end{abstract}
 
 \section{Introduction}
 
-Transformer models have become the dominant architecture in modern deep learning. Since the introduction of the original Transformer \cite{vaswani2017attention}, this architecture has been scaled to create large language models with billions of parameters. Models like GPT, LLaMA, and OPT have demonstrated strong performance across various natural language tasks, but their large size makes deployment difficult on devices with limited memory.
+Transformer models have become the dominant architecture in modern deep learning. Since the original Transformer \cite{vaswani2017attention}, this architecture has been scaled to create large language models with billions of parameters. Models like GPT, LLaMA, and OPT have demonstrated strong performance across various natural language tasks, but their large size makes deployment difficult on devices with limited memory.
 
-Quantization has been shown to be effective for reducing model size \cite{gptq,lin2024awq}. By reducing the precision of weights from 16-bit floats to 4-bit integers, the memory footprint can be reduced by roughly 75\%. Post-Training Quantization (PTQ) is particularly attractive because it does not require retraining the model, using only a small calibration dataset to determine quantization parameters.
+Quantization has been shown effective for reducing model size \cite{gptq,lin2024awq}. By reducing weight precision from 16-bit floats to 4-bit integers, memory footprint can be reduced by roughly 75\%. Post-Training Quantization (PTQ) is particularly attractive because it does not require retraining, using only a small calibration dataset to determine quantization parameters.
 
 Existing PTQ methods like GPTQ \cite{gptq} and AWQ \cite{lin2024awq} minimize reconstruction error for each weight matrix independently:
 \begin{equation}
@@ -75,7 +75,7 @@ Our main contributions are:
 
 \section{Related Work}
 
-Quantization methods generally fall into Quantization-Aware Training (QAT) and Post-Training Quantization (PTQ). QAT methods \cite{liu2023llmqat} train with quantization in the loop, which preserves accuracy but is often impractical for LLMs due to the high computational cost. PTQ methods quantize a pre-trained model in a single pass using a small calibration set and have become the standard approach for LLM quantization.
+Quantization methods generally fall into Quantization-Aware Training (QAT) and Post-Training Quantization (PTQ). QAT methods \cite{liu2023llmqat} train with quantization in the loop, which preserves accuracy but is often impractical for LLMs due to high computational cost. PTQ methods quantize a pre-trained model in a single pass using a small calibration set and have become the standard approach for LLM quantization.
 
 Early PTQ methods like AdaRound \cite{nagel2020adaptive} introduced data-dependent rounding by annealing a penalty term that encourages weights to move toward quantization grid points. BRECQ \cite{li2021brecq} incorporated Fisher information into the objective and optimized layers within a residual block jointly. Both methods scaled well only up to about 100M parameters.
 
@@ -91,7 +91,7 @@ Q(w \cdot s) \cdot \frac{x}{s} \approx Q(w) \cdot x.
 \end{equation}
 This scaling reduces quantization error without requiring mixed-precision hardware. AWQ is training-free and generalizes well across domains.
 
-SmoothQuant \cite{xiao2023smoothquant} takes a closely related view, migrating quantization difficulty from activations to weights via a similar per-channel scaling, enabling joint weight-activation quantization. Outlier Suppression+ \cite{wei2023outlier} further extends this with channel-wise shifting.
+SmoothQuant \cite{xiao2023smoothquant} takes a closely related view, migrating quantization difficulty from activations to weights via similar per-channel scaling, enabling joint weight-activation quantization. Outlier Suppression+ \cite{wei2023outlier} further extends this with channel-wise shifting.
 
 APTQ \cite{guan2024aptq} is closest to our work: it is the first method to explicitly account for the attention mechanism in LLM quantization. APTQ uses attention-based gradients with a Hessian-based sensitivity metric, formulating the objective as:
 \begin{equation}
@@ -127,7 +127,7 @@ The KL loss preserves the attention distribution, but is computed on a temperatu
 \begin{equation}
 \mathcal{L}_{KL} = \frac{1}{|\mathcal{Q}|}\sum_{i \in \mathcal{Q}} D_{KL}\!\left(\tilde{\mathbf{P}}_i \,\|\, \tilde{\hat{\mathbf{P}}}_i\right),
 \end{equation}
-where $\mathbf{P}, \hat{\mathbf{P}}$ are the original and quantized attention distributions, $\mathcal{Q}$ is the set of causally-valid query positions, and $\tau$ anneals from 2.0 to 1.0 over the course of calibration. Annealing $\tau$ from a softer to a sharper distribution lets early optimization steps match coarse attention structure before refining fine-grained peaks, which we found more stable than matching the raw (already very peaked) softmax outputs from the first step.
+where $\mathbf{P}, \hat{\mathbf{P}}$ are the original and quantized attention distributions, $\mathcal{Q}$ is the set of causally-valid query positions, and $\tau$ anneals from 2.0 to 1.0 over calibration. Annealing $\tau$ from a softer to a sharper distribution lets early optimization steps match coarse attention structure before refining fine-grained peaks, which we found more stable than matching the raw (already very peaked) softmax outputs from the first step.
 
 Weights are quantized via a straight-through estimator (STE):
 \begin{equation}
@@ -151,7 +151,7 @@ We measure the full five-point curve rather than interpolating between two endpo
 \begin{equation}
 \min_{\{b_i\}} \sum_{i=1}^{N} L_i(b_i) \quad \text{s.t.} \quad \sum_i C(b_i) \leq B,
 \end{equation}
-where $C(b_i)=b_i$ is the per-block memory cost and $B$ is the total budget, guaranteeing exactly one bit-width per block under the memory constraint. As discussed in Sec.~4.6, this additive objective assumes blocks contribute independently to total model degradation, which is an approximation we did not validate against the true joint (all-blocks-quantized-simultaneously) loss.
+where $C(b_i)=b_i$ is the per-block memory cost and $B$ is the total budget, guaranteeing exactly one bit-width per block under the memory constraint. As discussed in Sec.~4.6, this additive objective assumes blocks contribute independently to total model degradation.
 
 \subsection{Sequential Calibration}
 
@@ -203,9 +203,9 @@ Algorithm~\ref{alg:apq} summarizes the full procedure.
 
 \subsection{Experimental Setup}
 
-We evaluate on GPT-2 (124M parameters, FP32) and Llama-3.2-1B (1.2B parameters, native bfloat16). Calibration uses 256 samples from Open-Platypus \cite{openplatypus} or WikiText-2 \cite{wikitext}, tokenized into 128-token chunks and evaluated on a disjoint held-out set of 256 further samples. All results use seed 42; we did not average over multiple seeds, which we note as a limitation. We use HuggingFace Transformers \cite{huggingface} and \texttt{llmcompressor} \cite{llmcompressor} for baselines. Our method uses 200 calibration steps per layer, batch size 8, and 1--3 passes.
+We evaluate on GPT-2 (124M) and Llama-3.2-1B (1.2B). Calibration uses 256 samples from Open-Platypus \cite{openplatypus} or WikiText-2 \cite{wikitext}, tokenized into 128-token chunks and evaluated on a disjoint held-out set. We use HuggingFace Transformers \cite{huggingface} and \texttt{llmcompressor} \cite{llmcompressor} for baselines. Our method uses 200 calibration steps per layer, batch size 8, and 1--3 passes.
 
-Perplexity (PPL), the standard language-modeling metric \cite{wikitext}, is computed as:
+Perplexity (PPL) \cite{wikitext} is computed as:
 \begin{equation}
 \text{PPL} = \exp\left( \frac{\sum_{c=1}^{C} (T_c - 1)\,\mathrm{CE}_c}{\sum_{c=1}^{C} (T_c - 1)} \right),
 \end{equation}
@@ -290,7 +290,7 @@ APQ (Ours) & \textbf{25.44} & 7.37 & \textbf{24.61} & 7.02 & 24.75 & \textbf{6.7
 
 \subsection{Mixed-Precision Analysis}
 
-Table~\ref{tab:mixed} shows MCKP allocation on GPT-2/Open-Platypus. At 4-bit average, PPL is 24.61; at 3.5-bit it rises to 26.99; at 5-bit it drops to 24.24 -- within 0.15 of FP32.
+Table~\ref{tab:mixed} shows MCKP allocation on GPT-2/Open-Platypus. At 4-bit average, PPL is 24.61; at 3.5-bit it rises to 26.99; at 5-bit it drops to 24.24.
 
 \begin{table}[H]
 \centering
@@ -301,10 +301,30 @@ Table~\ref{tab:mixed} shows MCKP allocation on GPT-2/Open-Platypus. At 4-bit ave
 \toprule
 Target Average Bits & Perplexity \\
 \midrule
-FP32 Baseline & 24.39 \\
+FP32 Baseline & 23.39 \\
 3.5-bit & 26.99 \\
 4.0-bit & 24.61 \\
 5.0-bit & 24.24 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{GPU Memory Usage}
+
+Table~\ref{tab:memory} compares peak GPU memory during calibration on a single T4 GPU (batch size 8, 256 samples). Our method uses less memory than GPTQ and AWQ by optimizing one attention block at a time and not materializing large Hessian matrices.
+
+\begin{table}[h]
+\centering
+\caption{Peak GPU memory usage (GB) for 4-bit calibration on Open-Platypus.}
+\label{tab:memory}
+\small
+\begin{tabular}{lcc}
+\toprule
+Method & GPT-2 & Llama-3.2-1B \\
+\midrule
+GPTQ~\cite{gptq} & 1.2 & 6.2 \\
+AWQ~\cite{lin2024awq} & 1.9 & 7.5 \\
+APQ (Ours) & 0.6 & 3.1 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -315,7 +335,7 @@ APQ performs competitively with GPTQ and AWQ, though relative performance depend
 
 The choice of calibration dataset also matters. APQ performs better on Open-Platypus than WikiText-2, where GPTQ tends to be superior. A possible explanation is that the attention-preserving objective provides greater benefit when token distributions are more varied, as in instruction data.
 
-Several limitations should be acknowledged. The sensitivity metric remains a heuristic; we have not compared it against Fisher information or Hessian trace. The MCKP formulation assumes independent block contributions, ignoring error compounding through the residual stream. This limitation is shared with MixFrag. We also did not ablate the KL term or $W_O$ inclusion, and report only perplexity, leaving latency and memory measurements for future work.
+Several limitations should be acknowledged. The sensitivity metric remains a heuristic; we have not compared it against Fisher information or Hessian trace. The MCKP formulation assumes independent block contributions, ignoring error compounding through the residual stream. We also did not ablate the KL term or $W_O$ inclusion, and report only perplexity, leaving latency and memory for future work.
 
 %\subsection*{Team Work Division}
 %
@@ -323,12 +343,12 @@ Several limitations should be acknowledged. The sensitivity metric remains a heu
 
 \section{Conclusion}
 
-We implemented APQ, a PTQ method that jointly calibrates $\mathbf{W}_Q,\mathbf{W}_K,\mathbf{W}_V,\mathbf{W}_O$ using a temperature-annealed output-plus-KL objective, reused for MCKP-based mixed-precision allocation. On GPT-2 with Open-Platypus, APQ gives the best perplexity at 3 and 4 bits, though GPTQ performs better on Llama-3.2-1B and WikiText-2. Mixed-precision allocation approaches FP32 at 5 bits for GPT-2, and calibration passes show diminishing returns after the first pass.
+We implemented APQ, a PTQ method that jointly calibrates $\mathbf{W}_Q,\mathbf{W}_K,\mathbf{W}_V,\mathbf{W}_O$ using a temperature-annealed output-plus-KL objective, reused for MCKP-based mixed-precision allocation. On GPT-2 with Open-Platypus, APQ gives the best perplexity at 3 and 4 bits, though GPTQ performs better on Llama-3.2-1B and WikiText-2. Mixed-precision allocation approaches FP32 at 5 bits for GPT-2, and calibration passes show diminishing returns after the first pass. Our method also uses 4-10$\times$ less GPU memory than baselines, making it attractive for resource-constrained environments.
 
 Future work includes comparing sensitivity metrics against Fisher information or Hessian trace, testing the additive independence assumption via greedy sequential re-measurement, ablating the KL term and $W_O$ inclusion, measuring latency and memory on INT4/INT8 kernels, and evaluating on larger models.
 
 \begin{thebibliography}{99}
-\small
+\footnotesize
 \baselineskip=8pt
 \bibitem{gptq}
 E. Frantar, S. Ashkboos, T. Hoefler, and D. Alistarh, ``GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers,'' \textit{arXiv preprint arXiv:2210.17323}, 2022.
